@@ -18,8 +18,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
+app.include_router(subscription.router, prefix="/api/v1/subscriptions", tags=["订阅"])
 app.include_router(activation.router, prefix="/api/v1/activation", tags=["兑换码"])
-app.include_router(subscription.router, prefix="/api/v1/subscription", tags=["订阅"])
 app.include_router(tunnels.router, prefix="/api/v1/tunnels", tags=["隧道"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["管理员"])
 app.include_router(frp.router, prefix="/api/v1/frp", tags=["FRP插件"])

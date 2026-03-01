@@ -1,15 +1,14 @@
 import api from './api'
-import { mockApi } from './mockApi'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
+import type { Tunnel } from '../types'
 
 export const tunnelService = {
-  getTunnels: () => 
-    USE_MOCK ? mockApi.getTunnels() : api.get('/tunnels'),
+  getTunnels: () => api.get<Tunnel[]>('/tunnels'),
   
-  createTunnel: (data: any) => 
-    USE_MOCK ? mockApi.createTunnel(data) : api.post('/tunnels', data),
+  getTunnel: (id: number) => api.get<Tunnel>(`/tunnels/${id}`),
   
-  deleteTunnel: (id: number) => 
-    USE_MOCK ? mockApi.deleteTunnel(id) : api.delete(`/tunnels/${id}`),
+  createTunnel: (data: Partial<Tunnel>) => api.post<Tunnel>('/tunnels', data),
+  
+  updateTunnel: (id: number, data: Partial<Tunnel>) => api.put<Tunnel>(`/tunnels/${id}`, data),
+  
+  deleteTunnel: (id: number) => api.delete(`/tunnels/${id}`),
 }

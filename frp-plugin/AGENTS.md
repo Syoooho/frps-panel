@@ -5,7 +5,7 @@
 
 ## 用途
 
-Go 语言编写的 FRP 服务端插件（frps-panel），用于接收 frps 发送的 HTTP 请求，实现多用户鉴权、端口限制、域名限制等功能。
+Go 语言编写的 FRP 服务端插件（frps-panel v2.0），用于接收 frps 发送的 HTTP 请求，转发到后端 FastAPI 进行用户验证和隧道管理。
 
 ## 核心文件
 
@@ -14,27 +14,28 @@ Go 语言编写的 FRP 服务端插件（frps-panel），用于接收 frps 发�
 | `go.mod` | Go modules 依赖管理 |
 | `go.sum` | Go modules 依赖校验 |
 | `Makefile` | 构建脚本 |
-| `Makefile.cross-compiles` | 跨平台编译脚本 |
-| `package.sh` | 打包脚本 |
 
 ## 子目录
 
 | 目录 | 用途 |
 |------|------|
-| `cmd/` | 命令行入口 (详见 `cmd/AGENTS.md`) |
-| `pkg/` | 核心包代码 (详见 `pkg/AGENTS.md`) |
-| `config/` | 配置文件示例 (详见 `config/AGENTS.md`) |
+| `cmd/frps-panel/` | 命令行入口（main.go） |
+| `pkg/config/` | 配置管理 |
+| `pkg/server/` | HTTP 服务器实现 |
+| `config/` | 配置文件示例 |
 
 ## AI Agent 工作指南
 
 ### 在此目录工作时
 
 - 使用 Go 1.21+ 版本
-- 构建：`make` 或 `go build -o frps-panel ./cmd/frps-panel`
-- 跨平台编译：`make -f Makefile.cross-compiles`
+- 安装依赖：`go mod tidy`
+- 构建：`make build` 或 `go build -o frps-panel ./cmd/frps-panel`
+- 跨平台编译：`make build-all`
 - 运行：`./frps-panel -c ./config/frps-panel.toml`
-- 打包：`./package.sh`
+- 查看版本：`./frps-panel -v`
 - 该插件需要配合 frp >= 0.52.0 版本使用
+- 需要后端 API 服务运行在 http://127.0.0.1:8000
 
 ### 测试要求
 
@@ -65,23 +66,24 @@ Go 语言编写的 FRP 服务端插件（frps-panel），用于接收 frps 发�
 
 ## 插件功能
 
-- 多用户鉴权（基于 token）
-- 用户管理（添加、删除、禁用、启用）
-- 端口限制（指定用户可用端口范围）
-- 域名限制（指定用户可用域名列表）
-- 二级域名限制（指定用户可用二级域名列表）
-- 服务器信息展示
-- 代理列表和流量统计
+- 接收 frps 的 HTTP 请求（Login、NewProxy、CloseProxy、Ping）
+- 转发请求到后端 FastAPI 进行处理
+- 支持 TLS 加密通信
+- 配置文件热加载（重启生效）
+- 轻量级代理设计，无状态服务
 
 ## 配置说明
 
-- `frps-panel.toml` - 插件主配置（监听地址、端口、管理员账号等）
-- `frps-tokens.toml` - 用户 token 配置（用户名、token、限制规则等）
+- `frps-panel.toml` - 插件配置（监听地址、端口、后端 API 地址、TLS 配置）
+- `frps.toml` - frps 服务端配置示例（注册插件）
+- `frpc.toml` - frpc 客户端配置示例（使用邮箱和 FRP Token）
 
 ## 注意事项
 
-- 用户被删除或禁用后不会立即生效，需要等待一段时间
-- 端口、域名、二级域名限制仅在建立新连接（NewProxy）时生效
-- 该插件是原 frps-panel 项目的一部分，未来需要改造以适配新的 SaaS 架构
+- 插件作为无状态代理，所有业务逻辑由后端 API 处理
+- 用户验证使用邮箱 + FRP Token 方式
+- 隧道状态由后端数据库管理
+- 插件需要能够访问后端 API（默认 http://127.0.0.1:8000）
+- 支持 TLS 加密，生产环境建议启用
 
 <!-- MANUAL: 手动添加的备注请写在此行下方 -->

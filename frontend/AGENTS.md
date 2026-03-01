@@ -44,55 +44,118 @@
 
 ### 已实现功能
 
-### 认证页面 ✅
+### 认证系统 ✅
 - 登录页面（/login）
   - 用户登录
   - 管理员登录入口
-  - 表单验证
+  - 表单验证（React Hook Form）
   - 错误提示
 - 注册页面（/register）
   - 用户注册
   - 密码确认
   - 邮箱验证
 
+### 用户仪表板 ✅
+- 概览页（/dashboard/overview）
+  - 订阅状态展示
+  - 隧道统计
+  - 配额使用情况
+  - 快捷入口
+- 隧道管理（/dashboard/tunnels）
+  - 隧道列表展示
+  - 创建隧道（TCP/UDP/HTTP/HTTPS）
+  - 删除隧道
+  - 配置复制
+- 激活订阅（/dashboard/activate）
+  - 兑换码输入
+  - 激活反馈
+  - 订阅说明
+- 个人信息（/dashboard/profile）
+  - 用户信息展示
+  - 密码修改
+
+### 管理员后台 ✅
+- 数据概览（/admin/overview）
+  - 用户统计
+  - 隧道统计
+  - 兑换码统计
+  - 在线率展示
+- 用户管理（/admin/users）
+  - 用户列表
+  - 分页查询
+  - 删除用户
+- 兑换码管理（/admin/codes）
+  - 兑换码列表
+  - 批量生成
+  - 删除兑换码
+- 系统配置（/admin/config）
+  - 系统参数配置
+
 ### 状态管理 ✅
 - authStore - 用户认证状态（Zustand + persist）
-  - Token存储
+  - Token 存储
   - 用户信息
   - 登录/登出
+- tunnelStore - 隧道数据状态
+  - 隧道列表
+  - 增删改查操作
 
 ### 服务层 ✅
-- authService - 认证API调用
+- authService - 认证 API
   - 注册、登录、获取用户信息
-- api - Axios实例配置
-  - 请求拦截（添加Token）
+- tunnelService - 隧道 API
+  - 获取、创建、更新、删除隧道
+- subscriptionService - 订阅 API
+  - 获取订阅信息、激活兑换码
+- adminService - 管理员 API
+  - 用户管理、兑换码管理、统计数据
+- api - Axios 实例配置
+  - 请求拦截（添加 Token）
   - 响应拦截（错误处理）
 
-### UI组件 ✅
-- Button - 按钮组件
-- Input - 输入框组件
+### UI 组件库 ✅
+- Button - 按钮组件（多种变体）
+- Input - 输入框组件（带验证）
+- Card - 卡片组件
+- Badge - 徽章组件
 - Modal - 模态框组件
 - Toast - 提示组件
 - ConfirmDialog - 确认对话框
+- Loading - 加载组件
+- EmptyState - 空状态组件
+
+### 业务组件 ✅
+- TunnelCard - 隧道卡片
+- TunnelForm - 隧道表单
 
 ### 布局组件 ✅
 - DashboardLayout - 用户仪表板布局
 - AdminLayout - 管理员后台布局
 
+### 工具函数 ✅
+- format - 格式化工具（日期、状态、类型）
+- validation - 验证工具（邮箱、密码、端口、域名）
+
+### 自定义 Hooks ✅
+- useToast - Toast 通知管理
+- useConfirm - 确认对话框管理
+
+### 类型系统 ✅
+- User - 用户类型
+- Tunnel - 隧道类型
+- Subscription - 订阅类型
+- RedeemCode - 兑换码类型
+- ApiResponse - API 响应类型
+- PaginatedResponse - 分页响应类型
+
 ## 待实现功能
 
-- 用户仪表板页面
-  - 概览页
-  - 隧道管理页
-  - 兑换码激活页
-  - 个人信息页
-- 管理员后台页面
-  - 数据概览
-  - 用户管理
-  - 兑换码管理
-  - 系统配置
-- 路由守卫
-- 权限控制
+- 数据可视化图表（Recharts 集成）
+- WebSocket 实时通信
+- 国际化支持（i18n）
+- 性能优化（代码分割、懒加载）
+- 单元测试（Vitest + React Testing Library）
+- E2E 测试（Playwright）
 
 ## 测试要求
 

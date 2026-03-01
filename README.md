@@ -1,63 +1,149 @@
 # FRP SaaS Platform
 
-基于frp的内网穿透SaaS平台，面向个人开发者提供服务。
+A modern SaaS platform for FRP (Fast Reverse Proxy) service, providing internal network penetration services for individual developers.
 
-## 项目结构
+[中文文档](./README_zh.md)
 
-```
-frps-panel/
-├── backend/          # FastAPI后端服务
-├── frontend/         # React前端应用
-├── frp-plugin/       # Go FRP插件（待改造）
-├── docs/             # 项目文档
-└── scripts/          # 工具脚本
-```
+## Features
 
-## 功能特性
+- User registration and email login
+- Subscription activation via redemption codes (Monthly: 10 ports, Yearly: 100 ports)
+- Tunnel management (TCP/UDP/HTTP/HTTPS)
+- Admin dashboard
+- Unlimited traffic
+- Multi-user authentication
+- Port, domain, and subdomain restrictions
 
-- 用户注册和邮箱登录
-- 兑换码激活订阅
-- 按端口数量计费（月付10端口，年付100端口）
-- 隧道管理（TCP/UDP/HTTP/HTTPS）
-- 管理员后台
-- 流量不限
+## Tech Stack
 
-## 快速开始
+### Frontend
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Zustand (State Management)
+- React Router v6
+- React Hook Form
 
-### 后端服务
+### Backend
+- FastAPI
+- SQLAlchemy + SQLite
+- JWT Authentication
+- Bcrypt Password Hashing
+- Pydantic Data Validation
+
+### Plugin
+- Go 1.21+
+- FRP >= 0.52.0
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- uv (Python package manager)
+- npm
+
+### 1. Initialize Database
 
 ```bash
 cd backend
-uv venv
-uv pip install -e .
-cp .env.example .env
-# 编辑.env配置文件
-uvicorn app.main:app --reload
+uv run python -m app.init_db
 ```
 
-### 前端应用
+### 2. Start Backend Service
+
+```bash
+cd backend
+uv run uvicorn app.main:app --reload
+```
+
+Backend will run at http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+### 3. Start Frontend Application
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-## 技术栈
+Frontend will run at http://localhost:3000
 
-- **后端**: FastAPI + SQLAlchemy + SQLite
-- **前端**: React + TypeScript + Ant Design
-- **插件**: Go (frps-panel)
+### 4. Test API
 
-## 文档
+```bash
+cd backend
+uv run python test_api.py
+```
 
-详细设计文档请查看 `docs/plans/` 目录。
+## Test Accounts
 
-## 开发状态
+- **Admin**: admin@example.com / admin123
+- **User**: test@example.com / test1234 (with monthly subscription)
 
-当前处于项目骨架搭建阶段，核心功能开发中。
+Test Redemption Codes:
+- Monthly: MONTHLY-TEST-0000 ~ 0004
+- Yearly: YEARLY-TEST-0000 ~ 0004
+
+## Project Structure
+
+```
+frps-panel/
+├── backend/          # FastAPI backend service
+├── frontend/         # React frontend application
+├── frp-plugin/       # Go FRP plugin
+├── docs/            # Documentation
+│   ├── api/         # API documentation
+│   └── plans/       # Design documents
+├── scripts/         # Utility scripts
+└── test_integration.md  # Integration test report
+```
+
+## Development Status
+
+### Completed ✅
+
+- Project scaffolding (Frontend + Backend)
+- User authentication system
+- Complete frontend implementation
+- Complete backend API implementation
+- Frontend-backend integration
+- API documentation
+- Database initialization
+- Integration testing
+
+### In Progress 🚧
+
+- Frontend feature testing
+- Go plugin integration
+
+### TODO 📋
+
+- FRP plugin communication interface
+- WebSocket real-time status push
+- Email notification system
+- Multi-node support
+- System monitoring and logging
+
+## Documentation
+
+- [API Documentation](./docs/api/README.md)
+- [Integration Test Report](./test_integration.md)
+- [Architecture Design](./docs/plans/2026-03-01-frp-saas-architecture.md)
+- [Database Design](./docs/plans/2026-03-01-frp-saas-database.md)
+- [Frontend Design](./docs/plans/2026-03-01-frp-saas-frontend.md)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+Based on [frps-panel](https://github.com/yhl452493373/frps-panel) by yhl452493373

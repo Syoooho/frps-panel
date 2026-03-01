@@ -13,12 +13,16 @@ router = APIRouter()
 @router.post("/register", response_model=LoginResponse)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     user = create_user(db, request.email, request.password)
+    if not user.frp_token:
+        user.generate_frp_token()
+        db.commit()
     tokens = create_tokens(user.id)
     return {
         **tokens,
         "user": {
             "id": user.id,
             "email": user.email,
+            "frp_token": user.frp_token,
             "is_admin": user.is_admin,
             "created_at": user.created_at.isoformat()
         }
@@ -27,6 +31,8 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 @router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = authenticate_user(db, request.email, request.password)
+    if not user.frp_token:
+        user.generate_frp_token()
     user.last_login = datetime.utcnow()
     db.commit()
     tokens = create_tokens(user.id)
@@ -35,6 +41,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "user": {
             "id": user.id,
             "email": user.email,
+            "frp_token": user.frp_token,
             "is_admin": user.is_admin,
             "created_at": user.created_at.isoformat()
         }

@@ -89,22 +89,68 @@
   - Token刷新机制
   - 前端状态管理（Zustand）
 
+- **前端完整实现**
+  - 类型系统（TypeScript 类型定义）
+  - 工具函数（格式化、验证）
+  - 自定义 Hooks（Toast、Confirm）
+  - API 服务层（认证、隧道、订阅、管理员）
+  - UI 组件库（Button、Card、Modal、Input 等）
+  - 用户页面（登录、注册、仪表板、隧道管理、激活、个人信息）
+  - 管理员页面（概览、用户管理、兑换码管理、系统配置）
+  - 路由配置和权限控制
+
+- **后端完整实现**
+  - 认证 API（注册、登录、用户信息）
+  - 隧道管理 API（CRUD、配额检查）
+  - 订阅管理 API（查询、激活）
+  - 兑换码系统 API（生成、查询、删除）
+  - 管理员 API（用户管理、统计数据）
+  - FRP 插件 API（Login、NewProxy、CloseProxy、Ping）
+  - 业务服务层（Auth、Tunnel、Subscription、Admin、FRP）
+  - 数据库模型（User、Tunnel、Subscription、ActivationCode）
+  - 数据初始化脚本
+  - API 测试脚本
+
+- **前后端联调**
+  - 环境配置（CORS、API 地址）
+  - API 集成测试（100% 通过）
+  - Bug 修复（字段名统一）
+  - 测试文档（backend/tests/test_integration.md）
+
+- **API 文档**
+  - 认证 API 文档
+  - 隧道管理 API 文档
+  - 订阅管理 API 文档
+  - 管理员 API 文档
+  - Swagger UI 自动文档
+
+- **Go 插件改造**
+  - 插件主程序（Go 1.21+）
+  - 配置管理系统
+  - HTTP 服务器实现
+  - 请求转发到后端 API
+  - 用户 FRP Token 系统
+  - 隧道状态管理
+  - 配置文件示例（frps、frpc、frps-panel）
+
 ### 开发中功能 🚧
 
-- 兑换码激活系统
-- 隧道管理功能
-- 用户仪表板
-- 管理员后台
+- 前端功能完整测试
 
 ### 待开发功能 📋
 
-- 订阅管理
-- 配额控制
-- Go插件改造
-- 邮件通知
+- WebSocket 实时状态推送
+- 邮件通知系统
 - 多节点支持
+- 系统监控和日志
 
 ## 快速启动
+
+### 初始化数据库
+```bash
+cd backend
+uv run python -m app.init_db
+```
 
 ### 后端服务
 ```bash
@@ -121,8 +167,48 @@ npm run dev
 # 访问 http://localhost:3000
 ```
 
+### 联调测试
+```bash
+# 后端 API 测试
+cd backend
+uv run python tests/test_api.py
+
+# FRP 插件 API 测试
+cd backend
+uv run python tests/test_frp_api.py
+
+# 前端测试
+# 浏览器访问 http://localhost:3000
+# 参考 backend/tests/test_integration.md 进行完整测试
+```
+
+### FRP 插件
+```bash
+# 构建插件
+cd frp-plugin
+make build
+
+# 运行插件
+./frps-panel -c ./config/frps-panel.toml
+```
+
 ### 测试账号
 - 管理员：admin@example.com / admin123
-- 测试用户：test@example.com / test1234
+- 测试用户：test@example.com / test1234（带月付订阅）
+- 测试用户 FRP Token：在个人信息页面查看
+- 测试兑换码：MONTHLY-TEST-0000 ~ 0004（月付）
+- 测试兑换码：YEARLY-TEST-0000 ~ 0004（年付）
+
+## 测试报告
+
+详见 [backend/tests/test_integration.md](./backend/tests/test_integration.md) - 前后端联调测试报告
+
+### 测试结果
+- ✅ 后端 API 测试 100% 通过
+- ✅ 用户认证功能正常
+- ✅ 隧道管理功能正常
+- ✅ 管理员功能正常
+- ✅ JWT Token 认证正常
+- ✅ FRP 插件 API 测试通过
 
 <!-- MANUAL: 手动添加的备注请写在此行下方 -->

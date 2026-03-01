@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from datetime import datetime
 from app.core.database import Base
 
@@ -8,9 +8,8 @@ class Subscription(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     plan_type = Column(String(20), nullable=False)
-    port_quota = Column(Integer, nullable=False)
-    used_ports = Column(Integer, default=0)
+    max_tunnels = Column(Integer, nullable=False)
     start_date = Column(DateTime, nullable=False)
-    expire_date = Column(DateTime, nullable=False, index=True)
-    status = Column(String(20), nullable=False, default="active", index=True)
+    end_date = Column(DateTime, nullable=False, index=True)
+    is_active = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)

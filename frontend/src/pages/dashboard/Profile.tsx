@@ -87,6 +87,18 @@ export default function Profile() {
 
           <div className="flex justify-between items-center">
             <div>
+              <p className="font-medium text-primary">FRP Token</p>
+              <p className="text-sm text-slate-600 font-mono">
+                {user?.frp_token || '未生成'}
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                用于 FRP 客户端连接验证
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <div>
               <p className="font-medium text-primary">密码</p>
               <p className="text-sm text-slate-600">••••••••</p>
             </div>

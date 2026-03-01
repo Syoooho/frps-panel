@@ -13,7 +13,7 @@ FRP SaaS Platform 提供完整的RESTful API，用于管理用户、订阅、隧
 
 ## API模块
 
-### 1. 认证模块 (Authentication)
+### 1. 认证模块 (Authentication) ✅
 
 用户注册、登录、Token管理。
 
@@ -25,50 +25,46 @@ FRP SaaS Platform 提供完整的RESTful API，用于管理用户、订阅、隧
 - `GET /auth/me` - 获取当前用户
 - `POST /auth/logout` - 用户登出
 
-### 2. 兑换码模块 (Activation) 🚧
-
-兑换码生成、激活、管理。
-
-**端点**:
-- `POST /activation/redeem` - 兑换码激活
-- `POST /activation/generate` - 生成兑换码（管理员）
-- `GET /activation/list` - 兑换码列表（管理员）
-- `DELETE /activation/{code_id}` - 删除兑换码（管理员）
-
-### 3. 订阅模块 (Subscription) 🚧
-
-用户订阅信息和配额管理。
-
-**端点**:
-- `GET /subscription/my` - 我的订阅
-- `GET /subscription/quota` - 配额信息
-
-### 4. 隧道模块 (Tunnels) 🚧
+### 2. 隧道模块 (Tunnels) ✅
 
 隧道创建、管理、状态监控。
 
+📄 [详细文档](./tunnels.md)
+
 **端点**:
 - `GET /tunnels` - 隧道列表
+- `GET /tunnels/{id}` - 获取隧道详情
 - `POST /tunnels` - 创建隧道
 - `PUT /tunnels/{id}` - 更新隧道
 - `DELETE /tunnels/{id}` - 删除隧道
-- `GET /tunnels/{id}/status` - 隧道状态
 
-### 5. 管理员模块 (Admin) 🚧
+### 3. 订阅模块 (Subscription) ✅
 
-用户管理、系统配置、统计数据。
+用户订阅信息和兑换码激活。
+
+📄 [详细文档](./subscriptions.md)
+
+**端点**:
+- `GET /subscriptions/me` - 我的订阅
+- `POST /activation/activate` - 激活兑换码
+
+### 4. 管理员模块 (Admin) ✅
+
+用户管理、系统配置、统计数据、兑换码管理。
+
+📄 [详细文档](./admin.md)
 
 **端点**:
 - `GET /admin/users` - 用户列表
-- `PUT /admin/users/{id}` - 更新用户
 - `DELETE /admin/users/{id}` - 删除用户
 - `GET /admin/stats` - 统计数据
-- `GET /admin/config` - 系统配置
-- `PUT /admin/config` - 更新配置
+- `POST /activation/generate` - 生成兑换码
+- `GET /activation/codes` - 兑换码列表
+- `DELETE /activation/codes/{id}` - 删除兑换码
 
-### 6. FRP插件模块 (FRP) 🚧
+### 5. FRP插件模块 (FRP) 🚧
 
-FRP插件验证和隧道状态同步。
+FRP插件验证和隧道状态同步（待实现）。
 
 **端点**:
 - `POST /frp/validate` - 验证用户
@@ -81,9 +77,9 @@ FRP插件验证和隧道状态同步。
 
 ```json
 {
-  "success": true,
-  "data": {},
-  "message": "操作成功"
+  "id": 1,
+  "name": "example",
+  ...
 }
 ```
 
@@ -118,44 +114,58 @@ Authorization: Bearer <access_token>
 
 获取Token的方式：
 1. 用户注册或登录后获得
-2. Token有效期30分钟
+2. Token包含在响应的 `access_token` 字段中
 3. 过期后需要重新登录
 
-## 分页参数
+## 快速开始
 
-列表接口支持分页参数：
+### 1. 用户注册
 
-```
-?page=1&page_size=20
-```
-
-响应格式：
-
-```json
-{
-  "items": [],
-  "total": 100,
-  "page": 1,
-  "page_size": 20
-}
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password123"
+  }'
 ```
 
-## 错误码定义
+### 2. 用户登录
 
-| 错误码 | 说明 |
-|--------|------|
-| AUTH_001 | 认证失败 |
-| AUTH_002 | Token过期 |
-| AUTH_003 | 权限不足 |
-| USER_001 | 用户不存在 |
-| USER_002 | 邮箱已存在 |
-| CODE_001 | 兑换码无效 |
-| CODE_002 | 兑换码已使用 |
-| CODE_003 | 兑换码已过期 |
-| QUOTA_001 | 配额不足 |
-| TUNNEL_001 | 隧道名称重复 |
-| TUNNEL_002 | 端口已被占用 |
-| TUNNEL_003 | 域名已被占用 |
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password123"
+  }'
+```
+
+### 3. 创建隧道
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tunnels \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {access_token}" \
+  -d '{
+    "name": "Web Server",
+    "type": "tcp",
+    "local_ip": "127.0.0.1",
+    "local_port": 8080,
+    "remote_port": 8080
+  }'
+```
+
+## 测试账号
+
+开发环境提供以下测试账号：
+
+- **管理员**: admin@example.com / admin123
+- **普通用户**: test@example.com / test1234（带月付订阅）
+
+测试兑换码：
+- 月付：MONTHLY-TEST-0000 ~ 0004
+- 年付：YEARLY-TEST-0000 ~ 0004
 
 ## 开发工具
 
@@ -167,26 +177,24 @@ Authorization: Bearer <access_token>
 
 访问 http://localhost:8000/redoc 查看美化的API文档。
 
-### Postman Collection
-
-导入 `postman_collection.json` 到Postman进行API测试。
-
 ## 更新日志
 
 ### 2026-03-01
 
 - ✅ 实现认证模块（注册、登录、获取用户信息）
+- ✅ 实现隧道管理模块（CRUD、配额检查）
+- ✅ 实现订阅模块（查询、兑换码激活）
+- ✅ 实现管理员模块（用户管理、统计数据、兑换码管理）
 - ✅ JWT Token生成和验证
 - ✅ 密码哈希存储
 - ✅ 邮箱格式验证
+- ✅ 数据库初始化脚本
 
 ### 待实现
 
-- 🚧 兑换码模块
-- 🚧 订阅模块
-- 🚧 隧道模块
-- 🚧 管理员模块
 - 🚧 FRP插件集成
+- 🚧 WebSocket实时状态推送
+- 🚧 邮件通知系统
 
 ## 联系方式
 

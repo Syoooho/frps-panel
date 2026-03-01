@@ -13,3 +13,14 @@ class LoginResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     user: dict
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    frp_token: str | None = None
+    is_admin: bool
+    created_at: str
+    
+    class Config:
+        from_attributes = True

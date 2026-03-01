@@ -19,7 +19,13 @@ export default function Tunnels() {
     tunnel: null,
   })
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' as any })
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    type: 'tcp' | 'udp' | 'http' | 'https'
+    local_port: string
+    remote_port: string
+    custom_domain: string
+  }>({
     name: '',
     type: 'tcp',
     local_port: '',
@@ -109,8 +115,8 @@ ${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-primary mb-2">{tunnel.name}</h3>
-                  <Badge variant={tunnel.status === 'online' ? 'success' : 'error'}>
-                    {tunnel.status === 'online' ? '在线' : '离线'}
+                  <Badge variant={tunnel.status === 'active' ? 'success' : 'error'}>
+                    {tunnel.status === 'active' ? '活跃' : '未激活'}
                   </Badge>
                 </div>
                 <Badge variant="info">{tunnel.type.toUpperCase()}</Badge>
