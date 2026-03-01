@@ -9,7 +9,7 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
-    if not verify_password(password, user.password_hash):
+    if not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="账号已被禁用")
@@ -22,7 +22,7 @@ def create_user(db: Session, email: str, password: str) -> User:
     
     user = User(
         email=email,
-        password_hash=get_password_hash(password),
+        hashed_password=get_password_hash(password),
         is_active=True,
         is_admin=False
     )

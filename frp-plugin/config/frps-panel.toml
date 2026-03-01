@@ -1,21 +1,14 @@
-# basic options
+# FRP 插件配置 (v2.0.0)
 [common]
-# frps panel config info
+# 插件监听地址和端口
 plugin_addr = "127.0.0.1"
 plugin_port = 7200
-#admin_user = "admin"
-#admin_pwd = "admin"
-# specified login state keep time
-admin_keep_time = 0
 
-# enable tls
+# 后端 API 地址
+backend_url = "http://127.0.0.1:8000"
+
+# 启用 TLS
 tls_mode = false
 #tls_cert_file = "cert.crt"
 #tls_key_file = "cert.key"
-
-# frp dashboard info
-dashboard_addr = "127.0.0.1"
-dashboard_port = 7500
-dashboard_user = "admin"
-dashboard_pwd = "admin"
 

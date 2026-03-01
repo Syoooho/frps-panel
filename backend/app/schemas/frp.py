@@ -1,0 +1,108 @@
+"""FRP 插件相关的 Schema"""
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
+
+
+class FRPLoginRequest(BaseModel):
+    """FRP 登录请求"""
+    content: Dict[str, Any] = Field(..., description="frps 发送的原始内容")
+    
+    @property
+    def user(self) -> str:
+        """获取用户名"""
+        return self.content.get("user", "")
+    
+    @property
+    def token(self) -> str:
+        """获取 token"""
+        metas = self.content.get("metas", {})
+        return metas.get("token", "")
+
+
+class FRPLoginResponse(BaseModel):
+    """FRP 登录响应"""
+    reject: bool = Field(False, description="是否拒绝")
+    reject_reason: str = Field("", description="拒绝原因")
+    unchange: bool = Field(True, description="是否不修改")
+
+
+class FRPNewProxyRequest(BaseModel):
+    """FRP 新建代理请求"""
+    content: Dict[str, Any] = Field(..., description="frps 发送的原始内容")
+    
+    @property
+    def user(self) -> str:
+        """获取用户名"""
+        return self.content.get("user", "")
+    
+    @property
+    def proxy_name(self) -> str:
+        """获取代理名称"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("proxy_name", "")
+    
+    @property
+    def proxy_type(self) -> str:
+        """获取代理类型"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("proxy_type", "")
+    
+    @property
+    def remote_port(self) -> Optional[int]:
+        """获取远程端口"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("remote_port")
+    
+    @property
+    def custom_domains(self) -> list:
+        """获取自定义域名"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("custom_domains", [])
+    
+    @property
+    def subdomain(self) -> str:
+        """获取子域名"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("subdomain", "")
+
+
+class FRPNewProxyResponse(BaseModel):
+    """FRP 新建代理响应"""
+    reject: bool = Field(False, description="是否拒绝")
+    reject_reason: str = Field("", description="拒绝原因")
+    unchange: bool = Field(True, description="是否不修改")
+
+
+class FRPCloseProxyRequest(BaseModel):
+    """FRP 关闭代理请求"""
+    content: Dict[str, Any] = Field(..., description="frps 发送的原始内容")
+    
+    @property
+    def user(self) -> str:
+        """获取用户名"""
+        return self.content.get("user", "")
+    
+    @property
+    def proxy_name(self) -> str:
+        """获取代理名称"""
+        proxy_info = self.content.get("proxy_info", {})
+        return proxy_info.get("proxy_name", "")
+
+
+class FRPCloseProxyResponse(BaseModel):
+    """FRP 关闭代理响应"""
+    reject: bool = Field(False, description="是否拒绝")
+    reject_reason: str = Field("", description="拒绝原因")
+    unchange: bool = Field(True, description="是否不修改")
+
+
+class FRPPingRequest(BaseModel):
+    """FRP Ping 请求"""
+    content: Dict[str, Any] = Field(..., description="frps 发送的原始内容")
+
+
+class FRPPingResponse(BaseModel):
+    """FRP Ping 响应"""
+    reject: bool = Field(False, description="是否拒绝")
+    reject_reason: str = Field("", description="拒绝原因")
+    unchange: bool = Field(True, description="是否不修改")
