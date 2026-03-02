@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Server, LayoutDashboard, Network, Gift, User, LogOut } from 'lucide-react'
+import { Server, LayoutDashboard, Network, Gift, User, LogOut, Users, Settings, Shield, Activity } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 
 interface DashboardLayoutProps {
@@ -17,12 +17,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/login')
   }
 
-  const navItems = [
+  // 普通用户菜单
+  const userNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: '概览' },
     { path: '/dashboard/tunnels', icon: Network, label: '隧道管理' },
     { path: '/dashboard/activate', icon: Gift, label: '激活兑换码' },
     { path: '/dashboard/profile', icon: User, label: '个人信息' },
   ]
+
+  // 管理员额外菜单
+  const adminNavItems = [
+    { path: '/dashboard/monitor', icon: Activity, label: '系统监控' },
+    { path: '/dashboard/users', icon: Users, label: '用户管理' },
+    { path: '/dashboard/codes', icon: Gift, label: '兑换码管理' },
+    { path: '/dashboard/config', icon: Settings, label: '系统配置' },
+  ]
+
+  const navItems = user?.is_admin ? [...userNavItems, ...adminNavItems] : userNavItems
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,10 +41,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-cta/10 p-2 rounded-lg">
-                <Server className="w-6 h-6 text-cta" />
+              <div className={`p-2 rounded-lg ${user?.is_admin ? 'bg-red-600' : 'bg-cta/10'}`}>
+                {user?.is_admin ? (
+                  <Shield className="w-6 h-6 text-white" />
+                ) : (
+                  <Server className="w-6 h-6 text-cta" />
+                )}
               </div>
-              <span className="text-xl font-bold text-primary">FRP SaaS</span>
+              <div>
+                <span className="text-xl font-bold text-primary">FRP SaaS</span>
+                {user?.is_admin && (
+                  <p className="text-xs text-slate-500">管理员</p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -64,7 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     to={item.path}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-cta text-white'
+                        ? user?.is_admin ? 'bg-red-600 text-white' : 'bg-cta text-white'
                         : 'text-slate-700 hover:bg-slate-100'
                     }`}
                   >

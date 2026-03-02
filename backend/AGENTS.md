@@ -25,6 +25,7 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 | `app/` | 应用主代码 (详见 `app/AGENTS.md`) |
 | `alembic/` | 数据库迁移脚本 (详见 `alembic/AGENTS.md`) |
 | `tests/` | 测试脚本和测试文档 |
+| `logs/` | 日志文件目录 |
 | `.venv/` | Python 虚拟环境（不提交到 Git） |
 
 ## AI Agent 工作指南
@@ -38,6 +39,8 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 - API 文档自动生成：访问 `/docs` (Swagger) 或 `/redoc`
 - 测试 API：`uv run python tests/test_api.py`（需先启动服务）
 - 测试 FRP API：`uv run python tests/test_frp_api.py`（需先启动服务）
+- 测试监控 API：`uv run python tests/test_monitor_api.py`（需先启动服务）
+- 查看日志：`tail -f logs/app.log` 或 `logs/access.log` 或 `logs/error.log`
 
 ### 已实现功能
 
@@ -87,6 +90,26 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 - 用户 FRP Token 系统
 - 隧道状态自动管理
 
+### 系统监控 API ✅
+- 系统资源统计（GET /api/v1/monitor/system）
+- 隧道统计（GET /api/v1/monitor/tunnels）
+- 用户统计（GET /api/v1/monitor/users）
+- 订阅统计（GET /api/v1/monitor/subscriptions）
+- 监控概览（GET /api/v1/monitor/overview）
+- 需要管理员权限
+
+### 仪表板 API ✅
+- 用户仪表板统计（GET /api/v1/dashboard/stats）
+- 返回订阅信息和隧道统计
+- 需要用户认证
+
+### 日志系统 ✅
+- 结构化日志记录
+- 日志级别管理（DEBUG、INFO、WARNING、ERROR）
+- 日志文件轮转（10MB/文件）
+- 请求日志中间件
+- 三种日志文件：app.log、error.log、access.log
+
 ### 数据模型 ✅
 - User - 用户模型（邮箱、密码、角色）
 - Subscription - 订阅模型（计划类型、配额、有效期）
@@ -100,14 +123,17 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 - SubscriptionService - 订阅服务（激活、续期、兑换码管理）
 - AdminService - 管理员服务（用户管理、统计数据）
 - FRPService - FRP 插件服务（用户验证、代理验证、隧道管理）
+- MonitorService - 监控服务（系统资源、业务统计）
 - Security - 安全模块（密码哈希、JWT）
 - Database - 数据库连接和会话管理
 - Config - 配置管理
+- Logging - 日志系统
 
 ### 工具脚本 ✅
 - init_db.py - 数据库初始化脚本
 - tests/test_api.py - API 测试脚本
 - tests/test_frp_api.py - FRP API 测试脚本
+- tests/test_monitor_api.py - 监控 API 测试脚本
 - tests/test_integration.md - 集成测试文档
 - scripts/init_db.sh - Shell 初始化脚本
 - scripts/start.sh - 启动脚本
@@ -121,9 +147,6 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 
 - WebSocket 实时状态推送
 - 邮件通知系统
-- 系统配置管理 API
-- 日志记录和审计
-- 性能监控和限流
 - 数据库备份和恢复
 
 ## 测试要求

@@ -1,23 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Toast from '../../components/ui/Toast'
+import { systemService } from '../../services/system'
 
 export default function SystemConfig() {
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' as any })
+  const [loading, setLoading] = useState(true)
   const [config, setConfig] = useState({
-    monthly_ports: '10',
-    yearly_ports: '20',
-    default_domain: 'frp.example.com',
-    port_range_start: '10000',
-    port_range_end: '20000',
-    grace_period_days: '1',
+    frp_server_addr: '',
+    frp_server_port: '',
   })
 
-  const handleSave = () => {
-    setToast({ isVisible: true, message: '配置保存成功', type: 'success' })
+  useEffect(() => {
+    loadConfig()
+  }, [])
+
+  const loadConfig = async () => {
+    try {
+      const data = await systemService.getConfig()
+      setConfig({
+        frp_server_addr: data.frp_server_addr,
+        frp_server_port: data.frp_server_port.toString(),
+      })
+    } catch (err) {
+      setToast({ isVisible: true, message: '加载配置失败', type: 'error' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      await systemService.updateConfig({
+        frp_server_addr: config.frp_server_addr,
+        frp_server_port: parseInt(config.frp_server_port),
+      })
+      setToast({ isVisible: true, message: '配置保存成功', type: 'success' })
+    } catch (err) {
+      setToast({ isVisible: true, message: '保存失败，请重试', type: 'error' })
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12">加载中...</div>
   }
 
   return (
@@ -41,61 +69,26 @@ export default function SystemConfig() {
       </div>
 
       <Card hoverable={false}>
-        <h2 className="text-xl font-bold text-primary mb-6">套餐配置</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Input
-            label="月付套餐端口数"
-            type="number"
-            value={config.monthly_ports}
-            onChange={(e) => setConfig({ ...config, monthly_ports: e.target.value })}
-          />
-          <Input
-            label="年付套餐端口数"
-            type="number"
-            value={config.yearly_ports}
-            onChange={(e) => setConfig({ ...config, yearly_ports: e.target.value })}
-          />
-        </div>
-      </Card>
-
-      <Card hoverable={false}>
-        <h2 className="text-xl font-bold text-primary mb-6">服务器配置</h2>
+        <h2 className="text-xl font-bold text-primary mb-6">FRP 服务器配置</h2>
         <div className="space-y-6">
           <Input
-            label="默认域名"
-            placeholder="frp.example.com"
-            value={config.default_domain}
-            onChange={(e) => setConfig({ ...config, default_domain: e.target.value })}
+            label="服务器地址"
+            placeholder="frp.example.com 或 1.2.3.4"
+            value={config.frp_server_addr}
+            onChange={(e) => setConfig({ ...config, frp_server_addr: e.target.value })}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="端口范围起始"
-              type="number"
-              value={config.port_range_start}
-              onChange={(e) => setConfig({ ...config, port_range_start: e.target.value })}
-            />
-            <Input
-              label="端口范围结束"
-              type="number"
-              value={config.port_range_end}
-              onChange={(e) => setConfig({ ...config, port_range_end: e.target.value })}
-            />
-          </div>
+          <Input
+            label="服务器端口"
+            type="number"
+            placeholder="7000"
+            value={config.frp_server_port}
+            onChange={(e) => setConfig({ ...config, frp_server_port: e.target.value })}
+            className="max-w-md"
+          />
+          <p className="text-sm text-slate-600">
+            此配置用于生成客户端配置文件，用户复制配置时会使用这里设置的服务器地址和端口
+          </p>
         </div>
-      </Card>
-
-      <Card hoverable={false}>
-        <h2 className="text-xl font-bold text-primary mb-6">订阅配置</h2>
-        <Input
-          label="宽限期（天）"
-          type="number"
-          value={config.grace_period_days}
-          onChange={(e) => setConfig({ ...config, grace_period_days: e.target.value })}
-          className="max-w-md"
-        />
-        <p className="text-sm text-slate-600 mt-2">
-          订阅到期后，用户仍可使用服务的天数
-        </p>
       </Card>
     </div>
   )

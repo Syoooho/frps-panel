@@ -106,7 +106,8 @@
   - 兑换码系统 API（生成、查询、删除）
   - 管理员 API（用户管理、统计数据）
   - FRP 插件 API（Login、NewProxy、CloseProxy、Ping）
-  - 业务服务层（Auth、Tunnel、Subscription、Admin、FRP）
+  - 仪表板 API（用户统计数据）
+  - 业务服务层（Auth、Tunnel、Subscription、Admin、FRP、Monitor）
   - 数据库模型（User、Tunnel、Subscription、ActivationCode）
   - 数据初始化脚本
   - API 测试脚本
@@ -114,7 +115,7 @@
 - **前后端联调**
   - 环境配置（CORS、API 地址）
   - API 集成测试（100% 通过）
-  - Bug 修复（字段名统一）
+  - Bug 修复（字段名统一、API 调用方式）
   - 测试文档（backend/tests/test_integration.md）
 
 - **API 文档**
@@ -133,16 +134,50 @@
   - 隧道状态管理
   - 配置文件示例（frps、frpc、frps-panel）
 
+- **系统监控和日志**
+  - 结构化日志系统（app.log、error.log、access.log）
+  - 日志文件自动轮转（10MB/文件，保留5-10个备份）
+  - 请求日志中间件（记录所有 API 请求和响应时间）
+  - 系统资源监控（CPU、内存、磁盘使用率）
+  - 隧道状态统计（总数、在线、离线、按类型统计）
+  - 用户活跃度统计（总数、活跃、新增）
+  - 订阅状态统计（总数、有效、过期、即将过期）
+  - 监控 API（需管理员权限）
+  - 管理员监控页面（实时数据展示，30秒自动刷新）
+
+- **隧道配置复制功能**
+  - 自动生成 frpc 配置文件
+  - 包含用户认证信息和隧道参数
+  - 一键复制到剪贴板
+  - 服务器地址可在系统配置中修改
+
+- **系统配置管理**
+  - FRP 服务器地址配置
+  - FRP 服务器端口配置
+  - 配置持久化到 .env 文件
+  - 管理员专属功能
+
+- **隧道编辑功能**
+  - 支持编辑已创建的隧道
+  - 端口冲突检查（创建和编辑时）
+  - 自动分配可用端口（TCP/UDP）
+  - 详细错误提示
+
+- **统一布局系统**
+  - 管理员和普通用户共用布局
+  - 根据用户角色动态显示菜单
+  - 管理员额外菜单：系统监控、用户管理、兑换码管理、系统配置
+  - 视觉区分（管理员显示红色盾牌图标）
+
 ### 开发中功能 🚧
 
-- 前端功能完整测试
+无
 
 ### 待开发功能 📋
 
 - WebSocket 实时状态推送
 - 邮件通知系统
 - 多节点支持
-- 系统监控和日志
 
 ## 快速启动
 
@@ -177,9 +212,26 @@ uv run python tests/test_api.py
 cd backend
 uv run python tests/test_frp_api.py
 
+# 系统监控 API 测试
+cd backend
+uv run python tests/test_monitor_api.py
+
 # 前端测试
 # 浏览器访问 http://localhost:3000
 # 参考 backend/tests/test_integration.md 进行完整测试
+```
+
+### 日志查看
+```bash
+# 查看应用日志
+cd backend
+tail -f logs/app.log
+
+# 查看访问日志
+tail -f logs/access.log
+
+# 查看错误日志
+tail -f logs/error.log
 ```
 
 ### FRP 插件
@@ -210,5 +262,8 @@ make build
 - ✅ 管理员功能正常
 - ✅ JWT Token 认证正常
 - ✅ FRP 插件 API 测试通过
+- ✅ 系统监控 API 测试通过
+- ✅ 日志系统正常运行
+- ✅ 仪表板数据显示正常
 
 <!-- MANUAL: 手动添加的备注请写在此行下方 -->

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Copy } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
-import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Toast from '../../components/ui/Toast'
 import Input from '../../components/ui/Input'
+import { TunnelCard } from '../../components/tunnel/TunnelCard'
 import { tunnelService } from '../../services/tunnel'
 import { useTunnelStore } from '../../store/tunnelStore'
 
@@ -14,20 +14,15 @@ export default function Tunnels() {
   const { tunnels, setTunnels, removeTunnel } = useTunnelStore()
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingTunnel, setEditingTunnel] = useState<any>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; tunnel: any }>({
     isOpen: false,
     tunnel: null,
   })
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' as any })
-  const [formData, setFormData] = useState<{
-    name: string
-    type: 'tcp' | 'udp' | 'http' | 'https'
-    local_port: string
-    remote_port: string
-    custom_domain: string
-  }>({
+  const [formData, setFormData] = useState({
     name: '',
-    type: 'tcp',
+    type: 'tcp' as 'tcp' | 'udp' | 'http' | 'https',
     local_port: '',
     remote_port: '',
     custom_domain: '',
@@ -48,13 +43,30 @@ export default function Tunnels() {
 
   const handleCreate = async () => {
     try {
-      await tunnelService.createTunnel(formData)
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        local_ip: '127.0.0.1',
+        local_port: parseInt(formData.local_port),
+        remote_port: formData.remote_port ? parseInt(formData.remote_port) : undefined,
+        custom_domain: formData.custom_domain || undefined,
+      }
+      
+      if (editingTunnel) {
+        await tunnelService.updateTunnel(editingTunnel.id, payload)
+        setToast({ isVisible: true, message: '隧道更新成功', type: 'success' })
+      } else {
+        await tunnelService.createTunnel(payload)
+        setToast({ isVisible: true, message: '隧道创建成功', type: 'success' })
+      }
+      
       setIsModalOpen(false)
+      setEditingTunnel(null)
       fetchTunnels()
       setFormData({ name: '', type: 'tcp', local_port: '', remote_port: '', custom_domain: '' })
-      setToast({ isVisible: true, message: '隧道创建成功', type: 'success' })
-    } catch (err) {
-      setToast({ isVisible: true, message: '创建失败，请重试', type: 'error' })
+    } catch (err: any) {
+      const message = err.response?.data?.detail || '操作失败，请重试'
+      setToast({ isVisible: true, message, type: 'error' })
     }
   }
 
@@ -62,21 +74,33 @@ export default function Tunnels() {
     try {
       await tunnelService.deleteTunnel(id)
       removeTunnel(id)
+      setDeleteConfirm({ isOpen: false, tunnel: null })
       setToast({ isVisible: true, message: '隧道已删除', type: 'success' })
     } catch (err) {
       setToast({ isVisible: true, message: '删除失败，请重试', type: 'error' })
     }
   }
-
-  const copyConfig = (tunnel: any) => {
-    const config = `[${tunnel.name}]
-type = ${tunnel.type}
-local_port = ${tunnel.local_port}
-${tunnel.remote_port ? `remote_port = ${tunnel.remote_port}` : ''}
-${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
-    
-    navigator.clipboard.writeText(config)
+  
+  const handleCopySuccess = () => {
     setToast({ isVisible: true, message: '配置已复制到剪贴板', type: 'success' })
+  }
+  
+  const handleEdit = (tunnel: any) => {
+    setEditingTunnel(tunnel)
+    setFormData({
+      name: tunnel.name,
+      type: tunnel.type,
+      local_port: tunnel.local_port.toString(),
+      remote_port: tunnel.remote_port ? tunnel.remote_port.toString() : '',
+      custom_domain: tunnel.custom_domain || '',
+    })
+    setIsModalOpen(true)
+  }
+  
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingTunnel(null)
+    setFormData({ name: '', type: 'tcp', local_port: '', remote_port: '', custom_domain: '' })
   }
 
   if (loading) {
@@ -111,60 +135,21 @@ ${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {tunnels.map((tunnel) => (
-            <Card key={tunnel.id} hoverable={false}>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-primary mb-2">{tunnel.name}</h3>
-                  <Badge variant={tunnel.status === 'active' ? 'success' : 'error'}>
-                    {tunnel.status === 'active' ? '活跃' : '未激活'}
-                  </Badge>
-                </div>
-                <Badge variant="info">{tunnel.type.toUpperCase()}</Badge>
-              </div>
-
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">本地端口:</span>
-                  <span className="font-medium">{tunnel.local_port}</span>
-                </div>
-                {tunnel.remote_port && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">远程端口:</span>
-                    <span className="font-medium">{tunnel.remote_port}</span>
-                  </div>
-                )}
-                {tunnel.custom_domain && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">域名:</span>
-                    <span className="font-medium">{tunnel.custom_domain}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => copyConfig(tunnel)}
-                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
-                >
-                  <Copy className="w-4 h-4" />
-                  <span>复制配置</span>
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm({ isOpen: true, tunnel })}
-                  className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </Card>
+            <TunnelCard
+              key={tunnel.id}
+              tunnel={tunnel}
+              onDelete={(id) => setDeleteConfirm({ isOpen: true, tunnel: tunnels.find(t => t.id === id) })}
+              onEdit={handleEdit}
+              onCopySuccess={handleCopySuccess}
+            />
           ))}
         </div>
       )}
 
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="创建隧道"
+        onClose={handleCloseModal} 
+        title={editingTunnel ? '编辑隧道' : '创建隧道'}
         size="md"
       >
         <div className="space-y-5">
@@ -182,7 +167,7 @@ ${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
             <select
               className="input w-full cursor-pointer"
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
             >
               <option value="tcp">TCP - 适用于 SSH、数据库等</option>
               <option value="udp">UDP - 适用于游戏服务器等</option>
@@ -221,7 +206,7 @@ ${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
           <div className="flex space-x-3 pt-4">
             <Button 
               variant="secondary" 
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               className="flex-1"
             >
               取消
@@ -230,7 +215,7 @@ ${tunnel.custom_domain ? `custom_domains = ${tunnel.custom_domain}` : ''}`
               onClick={handleCreate} 
               className="flex-1"
             >
-              创建隧道
+              {editingTunnel ? '更新' : '创建'}
             </Button>
           </div>
         </div>
