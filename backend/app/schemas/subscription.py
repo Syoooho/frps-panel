@@ -32,5 +32,9 @@ class ActivationCodeResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ActivationCodeListResponse(BaseModel):
+    total: int
+    codes: list[ActivationCodeResponse]
+
 class RedeemCodeRequest(BaseModel):
     code: str
