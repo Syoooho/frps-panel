@@ -6,28 +6,143 @@ __pycache__/
 .Python
 *.egg-info/
 dist/
+build/
 .venv/
 venv/
+env/
+ENV/
 *.db
+*.sqlite
+*.sqlite3
+.pytest_cache/
+.coverage
+htmlcov/
+*.pyc
+pip-log.txt
+pip-delete-this-directory.txt
+
+# UV (Python package manager)
+.uv/
+uv.lock
 
 # Node
 node_modules/
 dist/
 .cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+package-lock.json
+
+# Frontend build
+frontend/dist/
+frontend/.vite/
+frontend/.turbo/
 
 # Environment
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
 
 # Logs
 *.log
+logs/
+*.log.*
+backend/logs/
+frontend/logs/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+backend/frps_panel.db
+backend/*.db
+
+# Go
+frp-plugin/frps-panel
+frp-plugin/*.exe
+frp-plugin/*.dll
+frp-plugin/*.so
+frp-plugin/*.dylib
+frp-plugin/vendor/
+frp-plugin/bin/
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+*.temp
+*~
+
+# Compressed files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Design system
+design-system/node_modules/
+design-system/dist/
+
+# Screenshots (optional, 取决于是否要提交截图)
+# screenshots/
+
+# FRP binaries (已下载的 FRP 二进制文件)
+frp_*/
+!frp_0.67.0_linux_amd64/frps
+!frp_0.67.0_linux_amd64/frpc
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+[Tt]humbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
