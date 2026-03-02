@@ -47,7 +47,7 @@ export default function Register() {
           创建账户
         </h1>
         <p className="text-center text-slate-600 mb-8">
-          开始使用 FRP 内网穿透服务
+          开始使用 EasyTunnel 易隧道服务
         </p>
 
         {error && (

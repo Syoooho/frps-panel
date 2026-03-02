@@ -56,10 +56,10 @@ export default function Login() {
         </div>
         
         <h1 className="text-3xl font-bold text-center text-primary mb-2">
-          {isAdmin ? '管理员登录' : 'FRP SaaS 平台'}
+          {isAdmin ? '管理员登录' : 'EasyTunnel'}
         </h1>
         <p className="text-center text-slate-600 mb-8">
-          {isAdmin ? 'FRP SaaS 后台管理系统' : '登录您的账户'}
+          {isAdmin ? 'EasyTunnel 后台管理系统' : '易隧道 - 简单易用的内网穿透'}
         </p>
 
         {error && (
