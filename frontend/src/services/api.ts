@@ -26,7 +26,10 @@ api.interceptors.response.use(
       useAuthStore.getState().logout()
       window.location.href = '/login'
     }
-    return Promise.reject(error)
+    
+    // 提取错误信息
+    const message = error.response?.data?.detail || error.response?.data?.message || error.message || '请求失败'
+    return Promise.reject(new Error(message))
   }
 )
 
