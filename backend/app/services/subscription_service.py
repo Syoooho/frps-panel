@@ -72,7 +72,9 @@ class SubscriptionService:
     
     @staticmethod
     def get_all_codes(db: Session, skip: int = 0, limit: int = 100):
-        return db.query(ActivationCode).offset(skip).limit(limit).all()
+        total = db.query(ActivationCode).count()
+        codes = db.query(ActivationCode).order_by(ActivationCode.created_at.desc()).offset(skip).limit(limit).all()
+        return {"total": total, "codes": codes}
     
     @staticmethod
     def delete_code(db: Session, code_id: int):

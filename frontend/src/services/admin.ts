@@ -10,14 +10,14 @@ export const adminService = {
     api.delete(`/admin/users/${userId}`),
   
   // 兑换码管理
-  getCodes: (page = 1, pageSize = 20) => 
-    api.get<PaginatedResponse<RedeemCode>>('/admin/codes', { params: { page, page_size: pageSize } }),
+  getCodes: (skip = 0, limit = 100) => 
+    api.get<RedeemCode[]>('/activation/codes', { params: { skip, limit } }),
   
   generateCodes: (planType: 'monthly' | 'yearly', count: number) => 
-    api.post('/admin/codes/generate', { plan_type: planType, count }),
+    api.post('/activation/generate', { plan_type: planType, count }),
   
   deleteCode: (codeId: number) => 
-    api.delete(`/admin/codes/${codeId}`),
+    api.delete(`/activation/codes/${codeId}`),
   
   // 系统统计
   getStats: () => 

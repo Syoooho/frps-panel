@@ -7,7 +7,8 @@ from app.services.subscription_service import SubscriptionService
 from app.schemas.subscription import (
     RedeemCodeRequest,
     ActivationCodeCreate,
-    ActivationCodeResponse
+    ActivationCodeResponse,
+    ActivationCodeListResponse
 )
 from typing import List
 
@@ -29,7 +30,7 @@ def generate_codes(
     codes = SubscriptionService.generate_codes(db, request.plan_type, request.count)
     return {"codes": codes}
 
-@router.get("/codes", response_model=List[ActivationCodeResponse], dependencies=[Depends(get_current_admin)])
+@router.get("/codes", response_model=ActivationCodeListResponse, dependencies=[Depends(get_current_admin)])
 def list_codes(
     skip: int = 0,
     limit: int = 100,
