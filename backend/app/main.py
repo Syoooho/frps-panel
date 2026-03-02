@@ -9,9 +9,9 @@ from app.api.v1 import auth, activation, subscription, tunnels, admin, frp, moni
 setup_logging(settings.LOG_LEVEL)
 
 app = FastAPI(
-    title="FRP SaaS Platform API",
+    title="EasyTunnel API",
     version="2.0.0",
-    description="FRP内网穿透SaaS平台后端API"
+    description="EasyTunnel 易隧道 - 内网穿透 SaaS 平台后端 API"
 )
 
 # CORS 中间件
@@ -39,7 +39,7 @@ app.include_router(system.router, prefix="/api/v1/system", tags=["系统配置"]
 
 @app.get("/")
 async def root():
-    return {"message": "FRP SaaS Platform API", "version": "2.0.0"}
+    return {"message": "EasyTunnel API", "version": "2.0.0"}
 
 @app.get("/health")
 async def health():
