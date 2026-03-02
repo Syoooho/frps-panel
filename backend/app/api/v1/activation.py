@@ -14,7 +14,7 @@ from typing import List
 router = APIRouter()
 
 @router.post("/activate")
-async def activate_code(
+def activate_code(
     request: RedeemCodeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -22,7 +22,7 @@ async def activate_code(
     return SubscriptionService.activate_code(db, current_user.id, request.code)
 
 @router.post("/generate", dependencies=[Depends(get_current_admin)])
-async def generate_codes(
+def generate_codes(
     request: ActivationCodeCreate,
     db: Session = Depends(get_db)
 ):
@@ -30,7 +30,7 @@ async def generate_codes(
     return {"codes": codes}
 
 @router.get("/codes", response_model=List[ActivationCodeResponse], dependencies=[Depends(get_current_admin)])
-async def list_codes(
+def list_codes(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
@@ -38,7 +38,7 @@ async def list_codes(
     return SubscriptionService.get_all_codes(db, skip, limit)
 
 @router.delete("/codes/{code_id}", dependencies=[Depends(get_current_admin)])
-async def delete_code(
+def delete_code(
     code_id: int,
     db: Session = Depends(get_db)
 ):

@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
-import Button from '../ui/Button'
 import type { Tunnel } from '../../types'
 import { formatTunnelType, formatStatus } from '../../utils/format'
 import { generateFrpcConfig, copyToClipboard } from '../../utils/frpConfig'
 import { useAuthStore } from '../../store/authStore'
 import { systemService } from '../../services/system'
-import { Copy } from 'lucide-react'
+import { Copy, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface TunnelCardProps {
   tunnel: Tunnel
@@ -17,6 +16,7 @@ interface TunnelCardProps {
 export const TunnelCard = ({ tunnel, onDelete, onEdit, onCopySuccess }: TunnelCardProps) => {
   const user = useAuthStore(state => state.user)
   const [serverConfig, setServerConfig] = useState({ addr: '127.0.0.1', port: 7000 })
+  const [isExpanded, setIsExpanded] = useState(false)
   
   useEffect(() => {
     systemService.getConfig().then(config => {
@@ -38,7 +38,7 @@ export const TunnelCard = ({ tunnel, onDelete, onEdit, onCopySuccess }: TunnelCa
       return `https://${tunnel.custom_domain}`
     }
     if (tunnel.remote_port) {
-      return `server.com:${tunnel.remote_port}`
+      return `${serverConfig.addr}:${tunnel.remote_port}`
     }
     return '-'
   }
@@ -66,54 +66,102 @@ export const TunnelCard = ({ tunnel, onDelete, onEdit, onCopySuccess }: TunnelCa
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-semibold text-lg">{tunnel.name}</h3>
-          <span className={`inline-block px-2 py-1 rounded text-xs mt-1 ${getStatusColor(tunnel.status)}`}>
-            {formatStatus(tunnel.status)}
-          </span>
+    <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+      {/* 卡片头部 - 始终可见 */}
+      <div className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg">{tunnel.name}</h3>
+              <span className={`inline-block px-2 py-1 rounded text-xs ${getStatusColor(tunnel.status)}`}>
+                {formatStatus(tunnel.status)}
+              </span>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                {formatTunnelType(tunnel.type)}
+              </span>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              <span className="font-mono">{tunnel.local_ip}:{tunnel.local_port}</span>
+              <span className="mx-2">→</span>
+              <span className="font-mono">{getAccessUrl()}</span>
+            </div>
+          </div>
+          
+          {/* 操作按钮 */}
+          <div className="flex items-center gap-1 ml-4">
+            <button
+              onClick={() => onEdit(tunnel)}
+              className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="编辑"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(tunnel.id)}
+              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+              title="删除"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
+              title={isExpanded ? "收起" : "展开配置"}
+            >
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-          {formatTunnelType(tunnel.type)}
-        </span>
       </div>
 
-      <div className="space-y-2 text-sm text-gray-600">
-        <div className="flex justify-between">
-          <span>本地地址:</span>
-          <span className="font-mono">{tunnel.local_ip}:{tunnel.local_port}</span>
+      {/* 展开的配置详情 */}
+      {isExpanded && (
+        <div className="border-t border-gray-100 p-4 bg-gray-50">
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">配置信息</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">隧道类型:</span>
+                  <span className="font-mono">{tunnel.type.toUpperCase()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">本地地址:</span>
+                  <span className="font-mono">{tunnel.local_ip}:{tunnel.local_port}</span>
+                </div>
+                {tunnel.remote_port && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">远程端口:</span>
+                    <span className="font-mono">{tunnel.remote_port}</span>
+                  </div>
+                )}
+                {tunnel.subdomain && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">子域名:</span>
+                    <span className="font-mono">{tunnel.subdomain}</span>
+                  </div>
+                )}
+                {tunnel.custom_domain && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">自定义域名:</span>
+                    <span className="font-mono">{tunnel.custom_domain}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="pt-2">
+              <button
+                onClick={handleCopyConfig}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Copy className="w-4 h-4" />
+                <span>复制 FRP 客户端配置</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <span>访问地址:</span>
-          <span className="font-mono">{getAccessUrl()}</span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex gap-2">
-        <Button
-          variant="secondary"
-          onClick={handleCopyConfig}
-          className="text-sm py-1.5 px-3"
-        >
-          <Copy className="w-4 h-4 mr-1" />
-          复制配置
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => onEdit(tunnel)}
-          className="text-sm py-1.5 px-3"
-        >
-          编辑
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => onDelete(tunnel.id)}
-          className="text-sm py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white"
-        >
-          删除
-        </Button>
-      </div>
+      )}
     </div>
   )
 }

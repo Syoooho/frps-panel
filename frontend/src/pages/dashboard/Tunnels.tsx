@@ -121,10 +121,14 @@ export default function Tunnels() {
           <h1 className="text-3xl font-bold text-primary mb-2">隧道管理</h1>
           <p className="text-slate-600">管理您的内网穿透隧道</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="w-5 h-5 mr-2" />
-          创建隧道
-        </Button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm hover:shadow"
+          title="创建隧道"
+        >
+          <Plus className="w-5 h-5" />
+          <span>创建隧道</span>
+        </button>
       </div>
 
       {tunnels.length === 0 ? (

@@ -4,5 +4,5 @@ import type { Subscription } from '../types'
 export const subscriptionService = {
   getMySubscription: () => api.get<Subscription>('/subscriptions/me'),
   
-  activateCode: (code: string) => api.post('/subscriptions/activate', { code }),
+  activateCode: (code: string) => api.post('/activation/activate', { code }),
 }
