@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '../types'
+import { authService } from '../services/auth'
 
 interface AuthState {
   user: User | null
@@ -9,11 +10,12 @@ interface AuthState {
   setAuth: (token: string, user: User) => void
   clearAuth: () => void
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -28,6 +30,14 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('access_token')
         set({ token: null, user: null, isAuthenticated: false })
+      },
+      refreshUser: async () => {
+        try {
+          const user = await authService.getCurrentUser()
+          set({ user })
+        } catch (error) {
+          console.error('刷新用户信息失败:', error)
+        }
       },
     }),
     {
