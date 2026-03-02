@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { Gift } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
-import { mockApi } from '../../services/mockApi'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
+import { subscriptionService } from '../../services/subscription'
+import { useAuthStore } from '../../store/authStore'
 
 export default function Activate() {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const navigate = useNavigate()
+  const refreshUser = useAuthStore(state => state.refreshUser)
 
   const handleActivate = async () => {
     if (!code.trim()) {
@@ -22,17 +24,17 @@ export default function Activate() {
     setMessage({ type: '', text: '' })
 
     try {
-      if (USE_MOCK) {
-        await mockApi.activateCode(code)
-      } else {
-        await fetch('/api/v1/activation/activate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code })
-        })
-      }
+      await subscriptionService.activateCode(code)
       setMessage({ type: 'success', text: '激活成功！订阅已更新' })
       setCode('')
+      
+      // 刷新用户信息
+      await refreshUser()
+      
+      // 3秒后跳转到概览页面
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 3000)
     } catch (err: any) {
       setMessage({ 
         type: 'error', 
