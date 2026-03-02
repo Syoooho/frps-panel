@@ -1,40 +1,29 @@
 import { useEffect, useState } from 'react'
-import { Users, Network, Activity, Gift } from 'lucide-react'
+import { Users, Network, Activity, Gift, Cpu, HardDrive, Database } from 'lucide-react'
 import Card from '../../components/ui/Card'
-import { mockApi } from '../../services/mockApi'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
-
-interface AdminStats {
-  total_users: number
-  active_users: number
-  total_tunnels: number
-  online_tunnels: number
-  total_codes: number
-  used_codes: number
-}
+import { monitorService, MonitorOverview } from '../../services/monitor'
+import { useAuthStore } from '../../store/authStore'
 
 export default function AdminOverview() {
-  const [stats, setStats] = useState<AdminStats | null>(null)
+  const user = useAuthStore(state => state.user)
+  const [data, setData] = useState<MonitorOverview | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('当前用户:', user)
     fetchStats()
+    const interval = setInterval(fetchStats, 30000) // 每30秒刷新
+    return () => clearInterval(interval)
   }, [])
 
   const fetchStats = async () => {
     try {
-      if (USE_MOCK) {
-        const data = {
-          total_users: 156,
-          active_users: 89,
-          total_tunnels: 342,
-          online_tunnels: 218,
-          total_codes: 500,
-          used_codes: 156,
-        }
-        setStats(data)
-      }
+      const overview = await monitorService.getOverview()
+      console.log('监控数据:', overview)
+      setData(overview)
+    } catch (err: any) {
+      console.error('获取监控数据失败:', err)
+      console.error('错误详情:', err.response?.data || err.message)
     } finally {
       setLoading(false)
     }
@@ -47,80 +36,207 @@ export default function AdminOverview() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-primary mb-2">数据概览</h1>
-        <p className="text-slate-600">系统运行状态和关键指标</p>
+        <h1 className="text-3xl font-bold text-primary mb-2">系统监控</h1>
+        <p className="text-slate-600">实时系统状态和关键指标</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card hoverable={false} className="border-l-4 border-l-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-600 mb-1">总用户数</p>
-              <p className="text-2xl font-bold text-primary">{stats?.total_users || 0}</p>
-              <p className="text-xs text-green-600 mt-1">活跃: {stats?.active_users || 0}</p>
+      {/* 系统资源监控 */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-700 mb-4">系统资源</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card hoverable={false} className="border-l-4 border-l-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">CPU 使用率</p>
+                <p className="text-3xl font-bold text-primary">
+                  {data?.system?.cpu_percent?.toFixed(1) || '0.0'}%
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Cpu className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card hoverable={false} className="border-l-4 border-l-green-500">
-          <div className="flex items-center justify-between">
+          <Card hoverable={false} className="border-l-4 border-l-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">内存使用率</p>
+                <p className="text-3xl font-bold text-primary">
+                  {data?.system?.memory_percent?.toFixed(1) || '0.0'}%
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Database className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false} className="border-l-4 border-l-orange-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">磁盘使用率</p>
+                <p className="text-3xl font-bold text-primary">
+                  {data?.system?.disk_percent?.toFixed(1) || '0.0'}%
+                </p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <HardDrive className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* 用户统计 */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-700 mb-4">用户统计</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">总用户数</p>
+                <p className="text-2xl font-bold text-primary">{data?.users.total || 0}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">活跃用户</p>
+                <p className="text-2xl font-bold text-primary">{data?.users.active || 0}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Activity className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">今日新增</p>
+                <p className="text-2xl font-bold text-primary">{data?.users.new_today || 0}</p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* 隧道统计 */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-700 mb-4">隧道统计</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card hoverable={false}>
             <div>
               <p className="text-sm text-slate-600 mb-1">总隧道数</p>
-              <p className="text-2xl font-bold text-primary">{stats?.total_tunnels || 0}</p>
-              <p className="text-xs text-green-600 mt-1">在线: {stats?.online_tunnels || 0}</p>
+              <p className="text-2xl font-bold text-primary">{data?.tunnels.total || 0}</p>
             </div>
-            <div className="bg-green-100 p-3 rounded-lg">
-              <Network className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card hoverable={false} className="border-l-4 border-l-orange-500">
-          <div className="flex items-center justify-between">
+          <Card hoverable={false}>
             <div>
-              <p className="text-sm text-slate-600 mb-1">兑换码</p>
-              <p className="text-2xl font-bold text-primary">{stats?.total_codes || 0}</p>
-              <p className="text-xs text-orange-600 mt-1">已使用: {stats?.used_codes || 0}</p>
+              <p className="text-sm text-slate-600 mb-1">在线隧道</p>
+              <p className="text-2xl font-bold text-green-600">{data?.tunnels.online || 0}</p>
             </div>
-            <div className="bg-orange-100 p-3 rounded-lg">
-              <Gift className="w-6 h-6 text-orange-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card hoverable={false} className="border-l-4 border-l-purple-500">
-          <div className="flex items-center justify-between">
+          <Card hoverable={false}>
+            <div>
+              <p className="text-sm text-slate-600 mb-1">离线隧道</p>
+              <p className="text-2xl font-bold text-slate-400">{data?.tunnels.offline || 0}</p>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
             <div>
               <p className="text-sm text-slate-600 mb-1">在线率</p>
               <p className="text-2xl font-bold text-primary">
-                {stats ? Math.round((stats.online_tunnels / stats.total_tunnels) * 100) : 0}%
+                {data?.tunnels.total ? Math.round((data.tunnels.online / data.tunnels.total) * 100) : 0}%
               </p>
-              <p className="text-xs text-purple-600 mt-1">隧道在线率</p>
             </div>
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <Activity className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <Card hoverable={false} className="bg-blue-50">
+            <p className="text-xs text-slate-600">TCP</p>
+            <p className="text-xl font-bold text-blue-600">{data?.tunnels.by_type.tcp || 0}</p>
+          </Card>
+          <Card hoverable={false} className="bg-green-50">
+            <p className="text-xs text-slate-600">UDP</p>
+            <p className="text-xl font-bold text-green-600">{data?.tunnels.by_type.udp || 0}</p>
+          </Card>
+          <Card hoverable={false} className="bg-orange-50">
+            <p className="text-xs text-slate-600">HTTP</p>
+            <p className="text-xl font-bold text-orange-600">{data?.tunnels.by_type.http || 0}</p>
+          </Card>
+          <Card hoverable={false} className="bg-purple-50">
+            <p className="text-xs text-slate-600">HTTPS</p>
+            <p className="text-xl font-bold text-purple-600">{data?.tunnels.by_type.https || 0}</p>
+          </Card>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card hoverable={false}>
-          <h2 className="text-xl font-bold text-primary mb-4">用户增长趋势</h2>
-          <div className="h-64 flex items-center justify-center text-slate-400">
-            图表区域（可集成 Recharts）
-          </div>
-        </Card>
+      {/* 订阅统计 */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-700 mb-4">订阅统计</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">总订阅数</p>
+                <p className="text-2xl font-bold text-primary">{data?.subscriptions.total || 0}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Gift className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </Card>
 
-        <Card hoverable={false}>
-          <h2 className="text-xl font-bold text-primary mb-4">隧道类型分布</h2>
-          <div className="h-64 flex items-center justify-center text-slate-400">
-            图表区域（可集成 Recharts）
-          </div>
-        </Card>
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">有效订阅</p>
+                <p className="text-2xl font-bold text-green-600">{data?.subscriptions.active || 0}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Activity className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">已过期</p>
+                <p className="text-2xl font-bold text-red-600">{data?.subscriptions.expired || 0}</p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-lg">
+                <Network className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">即将过期</p>
+                <p className="text-2xl font-bold text-orange-600">{data?.subscriptions.expiring_soon || 0}</p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-lg">
+                <Gift className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   )

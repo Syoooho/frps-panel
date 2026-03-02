@@ -11,7 +11,10 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
+    LOG_LEVEL: str = "INFO"
     FRP_PLUGIN_URL: str = "http://localhost:7200"
+    FRP_SERVER_ADDR: str = "127.0.0.1"
+    FRP_SERVER_PORT: int = 7000
     
     class Config:
         env_file = ".env"

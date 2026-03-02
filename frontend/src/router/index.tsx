@@ -3,7 +3,6 @@ import { useAuthStore } from '../store/authStore'
 import Login from '../pages/auth/Login'
 import Register from '../pages/auth/Register'
 import DashboardLayout from '../components/layout/DashboardLayout'
-import AdminLayout from '../components/layout/AdminLayout'
 import Overview from '../pages/dashboard/Overview'
 import Tunnels from '../pages/dashboard/Tunnels'
 import Activate from '../pages/dashboard/Activate'
@@ -18,17 +17,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" replace />
 }
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const token = useAuthStore(state => state.token)
-  return token ? <>{children}</> : <Navigate to="/admin/login" replace />
-}
-
 function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/admin/login" element={<Login />} />
       
       <Route path="/dashboard" element={
         <PrivateRoute>
@@ -62,36 +55,36 @@ function AppRouter() {
         </PrivateRoute>
       } />
 
-      <Route path="/admin" element={
-        <AdminRoute>
-          <AdminLayout>
+      <Route path="/dashboard/monitor" element={
+        <PrivateRoute>
+          <DashboardLayout>
             <AdminOverview />
-          </AdminLayout>
-        </AdminRoute>
+          </DashboardLayout>
+        </PrivateRoute>
       } />
 
-      <Route path="/admin/users" element={
-        <AdminRoute>
-          <AdminLayout>
+      <Route path="/dashboard/users" element={
+        <PrivateRoute>
+          <DashboardLayout>
             <UserManagement />
-          </AdminLayout>
-        </AdminRoute>
+          </DashboardLayout>
+        </PrivateRoute>
       } />
 
-      <Route path="/admin/codes" element={
-        <AdminRoute>
-          <AdminLayout>
+      <Route path="/dashboard/codes" element={
+        <PrivateRoute>
+          <DashboardLayout>
             <CodeManagement />
-          </AdminLayout>
-        </AdminRoute>
+          </DashboardLayout>
+        </PrivateRoute>
       } />
 
-      <Route path="/admin/config" element={
-        <AdminRoute>
-          <AdminLayout>
+      <Route path="/dashboard/config" element={
+        <PrivateRoute>
+          <DashboardLayout>
             <SystemConfig />
-          </AdminLayout>
-        </AdminRoute>
+          </DashboardLayout>
+        </PrivateRoute>
       } />
       
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

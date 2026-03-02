@@ -4,21 +4,29 @@ import { Server, Activity, Clock, Zap } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import { mockApi } from '../../services/mockApi'
+import api from '../../services/api'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
-interface Stats {
-  subscription_status: string
-  expire_date: string
-  port_quota: number
-  used_ports: number
-  total_tunnels: number
-  online_tunnels: number
+interface DashboardStats {
+  subscription: {
+    plan_type: string
+    max_tunnels: number
+    end_date: string
+    is_active: boolean
+  } | null
+  tunnels: {
+    total: number
+    online: number
+    offline: number
+    by_type: Record<string, number>
+    usage_percent: number
+  }
 }
 
 export default function Overview() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -27,8 +35,12 @@ export default function Overview() {
 
   const fetchStats = async () => {
     try {
-      const data = USE_MOCK ? await mockApi.getStats() : await fetch('/api/v1/dashboard/stats').then(r => r.json())
+      const data = USE_MOCK 
+        ? await mockApi.getStats() 
+        : await api.get('/dashboard/stats')
       setStats(data)
+    } catch (error) {
+      console.error('获取统计数据失败:', error)
     } finally {
       setLoading(false)
     }
@@ -38,7 +50,9 @@ export default function Overview() {
     return <div className="text-center py-12">加载中...</div>
   }
 
-  const quotaPercentage = stats ? (stats.used_ports / stats.port_quota) * 100 : 0
+  const subscription = stats?.subscription
+  const tunnels = stats?.tunnels
+  const quotaPercentage = tunnels?.usage_percent || 0
 
   return (
     <div className="space-y-8">
@@ -53,7 +67,7 @@ export default function Overview() {
             <div>
               <p className="text-sm text-slate-600 mb-1">订阅状态</p>
               <p className="text-2xl font-bold text-primary">
-                {stats?.subscription_status === 'active' ? '正常' : '未激活'}
+                {subscription?.is_active ? '正常' : '未激活'}
               </p>
             </div>
             <div className="bg-cta/10 p-3 rounded-lg">
@@ -67,7 +81,7 @@ export default function Overview() {
             <div>
               <p className="text-sm text-slate-600 mb-1">在线隧道</p>
               <p className="text-2xl font-bold text-primary">
-                {stats?.online_tunnels || 0} / {stats?.total_tunnels || 0}
+                {tunnels?.online || 0} / {tunnels?.total || 0}
               </p>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
@@ -81,7 +95,7 @@ export default function Overview() {
             <div>
               <p className="text-sm text-slate-600 mb-1">端口配额</p>
               <p className="text-2xl font-bold text-primary">
-                {stats?.used_ports || 0} / {stats?.port_quota || 0}
+                {tunnels?.total || 0} / {subscription?.max_tunnels || 0}
               </p>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -95,7 +109,7 @@ export default function Overview() {
             <div>
               <p className="text-sm text-slate-600 mb-1">到期时间</p>
               <p className="text-lg font-bold text-primary">
-                {stats?.expire_date ? new Date(stats.expire_date).toLocaleDateString('zh-CN') : '未激活'}
+                {subscription?.end_date ? new Date(subscription.end_date).toLocaleDateString('zh-CN') : '未激活'}
               </p>
             </div>
             <div className="bg-orange-100 p-3 rounded-lg">
@@ -119,7 +133,7 @@ export default function Overview() {
             />
           </div>
           <p className="text-sm text-slate-600">
-            已使用 {stats?.used_ports || 0} 个端口，剩余 {(stats?.port_quota || 0) - (stats?.used_ports || 0)} 个
+            已使用 {tunnels?.total || 0} 个端口，剩余 {(subscription?.max_tunnels || 0) - (tunnels?.total || 0)} 个
           </p>
         </div>
       </Card>
