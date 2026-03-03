@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Search, Ban, CheckCircle } from 'lucide-react'
 import Card from '../../components/ui/Card'
-import Input from '../../components/ui/Input'
 import Badge from '../../components/ui/Badge'
-import Button from '../../components/ui/Button'
 
 interface User {
   id: number

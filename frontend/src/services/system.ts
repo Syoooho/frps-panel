@@ -8,11 +8,11 @@ export interface SystemConfig {
 export const systemService = {
   async getConfig(): Promise<SystemConfig> {
     const data = await api.get('/system/config')
-    return data as SystemConfig
+    return data as unknown as SystemConfig
   },
   
   async updateConfig(config: SystemConfig): Promise<SystemConfig> {
     const data = await api.put('/system/config', config)
-    return data as SystemConfig
+    return data as unknown as SystemConfig
   }
 }

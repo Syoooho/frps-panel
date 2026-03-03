@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
               </div>
               <div>
-                <span className="text-xl font-bold text-primary">FRP SaaS</span>
+                <span className="text-xl font-bold text-primary">EasyTunnel</span>
                 {user?.is_admin && (
                   <p className="text-xs text-slate-500">管理员</p>
                 )}
