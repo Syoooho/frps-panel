@@ -23,7 +23,7 @@ pip-delete-this-directory.txt
 
 # UV (Python package manager)
 .uv/
-uv.lock
+# uv.lock  # 锁文件应该提交，以确保依赖版本一致
 
 # Node
 node_modules/
@@ -34,7 +34,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .pnpm-store/
-package-lock.json
+# package-lock.json  # 锁文件应该提交，以确保依赖版本一致
 
 # Frontend build
 frontend/dist/
