@@ -1,0 +1,260 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build FRP Plugin
+        run: |
+          cd frp-plugin
+          go mod download
+          GOOS=linux GOARCH=amd64 go build -o frps-panel-linux-amd64 ./cmd/frps-panel
+
+      - name: Prepare deployment files
+        run: |
+          mkdir -p deploy
+          cp -r frontend/dist deploy/frontend
+          cp -r backend deploy/backend
+          cp frp-plugin/frps-panel-linux-amd64 deploy/
+          cp frp-plugin/config/*.toml deploy/
+          
+      - name: Create deployment script
+        run: |
+          cat > deploy/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          APP_DIR="/opt/frps-panel"
+          BACKUP_DIR="/opt/frps-panel-backup-$(date +%Y%m%d-%H%M%S)"
+          
+          echo "🚀 开始部署..."
+          
+          # 备份现有部署
+          if [ -d "$APP_DIR" ]; then
+            echo "📦 备份现有部署到 $BACKUP_DIR"
+            sudo cp -r $APP_DIR $BACKUP_DIR
+          fi
+          
+          # 创建应用目录
+          sudo mkdir -p $APP_DIR
+          
+          # 停止服务
+          echo "⏸️  停止现有服务..."
+          sudo systemctl stop frps-panel-backend || true
+          sudo systemctl stop frps-panel-plugin || true
+          sudo systemctl stop nginx || true
+          
+          # 部署前端
+          echo "📱 部署前端..."
+          sudo rm -rf $APP_DIR/frontend
+          sudo cp -r frontend $APP_DIR/
+          
+          # 部署后端
+          echo "🔧 部署后端..."
+          sudo rm -rf $APP_DIR/backend
+          sudo cp -r backend $APP_DIR/
+          
+          # 部署插件
+          echo "🔌 部署插件..."
+          sudo cp frps-panel-linux-amd64 $APP_DIR/frps-panel
+          sudo chmod +x $APP_DIR/frps-panel
+          sudo cp *.toml $APP_DIR/ || true
+          
+          # 安装后端依赖
+          echo "📦 安装后端依赖..."
+          cd $APP_DIR/backend
+          
+          # 检查 uv 是否安装
+          if ! command -v uv &> /dev/null; then
+            echo "安装 uv..."
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.cargo/bin:$PATH"
+          fi
+          
+          # 使用 uv 创建虚拟环境并安装依赖
+          sudo uv venv .venv
+          sudo uv pip install -r requirements.txt
+          
+          # 初始化数据库（如果需要）
+          if [ ! -f "$APP_DIR/backend/frps_panel.db" ]; then
+            echo "🗄️  初始化数据库..."
+            sudo uv run python -m app.init_db
+          fi
+          
+          # 配置 Nginx
+          echo "🌐 配置 Nginx..."
+          sudo tee /etc/nginx/sites-available/frps-panel > /dev/null << 'NGINX_EOF'
+          server {
+              listen 80;
+              server_name _;
+          
+              # 前端静态文件
+              location / {
+                  root /opt/frps-panel/frontend;
+                  try_files $uri $uri/ /index.html;
+              }
+          
+              # 后端 API
+              location /api/ {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          
+              # Swagger 文档
+              location /docs {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+              }
+          
+              location /openapi.json {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+              }
+          }
+          NGINX_EOF
+          
+          sudo ln -sf /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/
+          sudo nginx -t
+          
+          # 配置后端 systemd 服务
+          echo "⚙️  配置后端服务..."
+          sudo tee /etc/systemd/system/frps-panel-backend.service > /dev/null << 'SERVICE_EOF'
+          [Unit]
+          Description=FRP SaaS Platform Backend
+          After=network.target
+          
+          [Service]
+          Type=simple
+          User=root
+          WorkingDirectory=/opt/frps-panel/backend
+          Environment="PATH=/opt/frps-panel/backend/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+          ExecStart=/opt/frps-panel/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+          Restart=always
+          RestartSec=10
+          
+          [Install]
+          WantedBy=multi-user.target
+          SERVICE_EOF
+          
+          # 配置插件 systemd 服务
+          echo "⚙️  配置插件服务..."
+          sudo tee /etc/systemd/system/frps-panel-plugin.service > /dev/null << 'PLUGIN_EOF'
+          [Unit]
+          Description=FRP Panel Plugin
+          After=network.target frps-panel-backend.service
+          
+          [Service]
+          Type=simple
+          User=root
+          WorkingDirectory=/opt/frps-panel
+          ExecStart=/opt/frps-panel/frps-panel -c /opt/frps-panel/frps-panel.toml
+          Restart=always
+          RestartSec=10
+          
+          [Install]
+          WantedBy=multi-user.target
+          PLUGIN_EOF
+          
+          # 重载并启动服务
+          echo "🚀 启动服务..."
+          sudo systemctl daemon-reload
+          sudo systemctl enable frps-panel-backend
+          sudo systemctl enable frps-panel-plugin
+          sudo systemctl start frps-panel-backend
+          sudo systemctl start frps-panel-plugin
+          sudo systemctl restart nginx
+          
+          # 检查服务状态
+          echo "✅ 检查服务状态..."
+          sudo systemctl status frps-panel-backend --no-pager || true
+          sudo systemctl status frps-panel-plugin --no-pager || true
+          sudo systemctl status nginx --no-pager || true
+          
+          echo "🎉 部署完成！"
+          echo "前端访问: http://$(curl -s ifconfig.me)"
+          echo "后端 API: http://$(curl -s ifconfig.me)/api"
+          echo "API 文档: http://$(curl -s ifconfig.me)/docs"
+          EOF
+          
+          chmod +x deploy/deploy.sh
+
+      - name: Deploy to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          source: "deploy/*"
+          target: "/tmp/frps-panel-deploy"
+          strip_components: 1
+
+      - name: Execute deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /tmp/frps-panel-deploy
+            chmod +x deploy.sh
+            ./deploy.sh
+            
+      - name: Cleanup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            rm -rf /tmp/frps-panel-deploy
+
+      - name: Deployment notification
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 部署成功！"
+          else
+            echo "❌ 部署失败！"
+          fi
