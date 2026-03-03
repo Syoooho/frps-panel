@@ -100,6 +100,10 @@ jobs:
           
           # 部署前端
           echo "📱 部署前端..."
+          # 处理宝塔面板的 .user.ini 保护
+          if [ -f "$APP_DIR/frontend/.user.ini" ]; then
+            chattr -i $APP_DIR/frontend/.user.ini 2>/dev/null || true
+          fi
           rm -rf $APP_DIR/frontend
           cp -r frontend $APP_DIR/
           
