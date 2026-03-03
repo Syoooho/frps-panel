@@ -268,18 +268,25 @@ jobs:
           systemctl start frps-panel-plugin
           
           # Nginx 平滑重载配置（不中断服务）
+          echo "🔄 配置 Nginx..."
           if systemctl is-active --quiet nginx; then
-            echo "🔄 重载 Nginx 配置..."
-            systemctl reload nginx || {
-              echo "❌ Nginx 重载失败，查看错误："
+            echo "Nginx 正在运行，重载配置..."
+            nginx -s reload || systemctl reload nginx || {
+              echo "❌ Nginx 重载失败"
               nginx -t
-              journalctl -xe -n 20
+              exit 1
+            }
+          elif pgrep nginx > /dev/null; then
+            echo "Nginx 进程存在但不受 systemd 管理，使用信号重载..."
+            nginx -s reload || {
+              echo "❌ Nginx 重载失败"
+              nginx -t
               exit 1
             }
           else
             echo "🚀 启动 Nginx..."
             systemctl start nginx || {
-              echo "❌ Nginx 启动失败，查看错误："
+              echo "❌ Nginx 启动失败"
               nginx -t
               journalctl -xe -n 20
               exit 1
