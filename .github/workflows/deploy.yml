@@ -124,7 +124,7 @@ jobs:
           # 初始化数据库（如果需要）
           if [ ! -f "$APP_DIR/backend/frps_panel.db" ]; then
             echo "🗄️  初始化数据库..."
-            .venv/bin/python -m app.init_db
+            uv run python -m app.init_db
           fi
           
           # 配置 Nginx
