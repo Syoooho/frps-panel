@@ -24,8 +24,16 @@ apt-get install -y \
     python3-venv \
     sqlite3
 
-# Python 已通过 apt 安装，使用内置的 venv
-echo "✅ Python 环境已就绪"
+# 安装 uv (Python 包管理器)
+echo "📦 检查 uv..."
+if ! command -v uv &> /dev/null; then
+    echo "安装 uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.cargo/bin:$PATH"
+    echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+else
+    echo "✅ uv 已安装"
+fi
 
 # 创建应用目录
 echo "📁 创建应用目录..."
