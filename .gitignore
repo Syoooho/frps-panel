@@ -146,3 +146,7 @@ $RECYCLE.BIN/
 # Linux
 .directory
 .Trash-*
+
+# 非必要文档（临时状态记录）
+PROJECT_STATUS.md
+CLEANUP_SUMMARY.md

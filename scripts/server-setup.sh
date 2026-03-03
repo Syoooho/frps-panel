@@ -31,6 +31,8 @@ if ! command -v uv &> /dev/null; then
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.cargo/bin:$PATH"
     echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+    # 创建系统级软链接
+    ln -sf $HOME/.cargo/bin/uv /usr/local/bin/uv || true
 else
     echo "✅ uv 已安装"
 fi
