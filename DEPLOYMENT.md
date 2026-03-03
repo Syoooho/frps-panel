@@ -4,7 +4,11 @@
 
 - ✅ 一台 Linux 服务器（Ubuntu 20.04+ / Debian 11+）
 - ✅ 服务器 root 访问权限
-- ✅ GitHub 仓库已配置 `SERVER_IP` 和 `SSH_KEY` Secrets
+- ✅ GitHub 仓库已配置以下 Secrets：
+  - `SERVER_IP`: 服务器 IP 地址
+  - `SSH_KEY`: SSH 私钥
+  - `SECRET_KEY`: JWT 密钥（随机字符串，至少 32 位）
+  - `FRP_SERVER_ADDR`: FRP 服务器地址（通常是服务器 IP）
 
 ## 三步完成部署
 
@@ -32,20 +36,27 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo mkdir -p /opt/frps-panel
 ```
 
-### 步骤 2: 配置环境
+### 步骤 2: 配置 GitHub Secrets
 
-编辑服务器配置：
+在 GitHub 仓库设置中添加以下 Secrets：
 
+1. 进入仓库 → Settings → Secrets and variables → Actions
+2. 点击 "New repository secret" 添加：
+
+| Secret 名称 | 说明 | 示例 |
+|------------|------|------|
+| `SERVER_IP` | 服务器 IP 地址 | `123.45.67.89` |
+| `SSH_KEY` | SSH 私钥内容 | 完整的私钥文件内容 |
+| `SECRET_KEY` | JWT 密钥 | 随机字符串，至少 32 位 |
+| `FRP_SERVER_ADDR` | FRP 服务器地址 | 通常与 `SERVER_IP` 相同 |
+
+生成 SECRET_KEY 的方法：
 ```bash
-sudo nano /opt/frps-panel/.env
-```
+# Linux/Mac
+openssl rand -hex 32
 
-修改以下内容：
-
-```env
-SECRET_KEY=请修改为随机字符串
-FRP_SERVER_ADDR=你的服务器IP
-FRP_SERVER_PORT=7000
+# Python
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ### 步骤 3: 触发部署
