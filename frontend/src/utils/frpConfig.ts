@@ -25,7 +25,7 @@ export function generateFrpcConfig(
   lines.push('# 用户认证信息')
   lines.push('user = "' + userEmail + '"')
   lines.push('')
-  lines.push('[metadatas]')
+  lines.push('[metas]')
   lines.push('token = "' + frpToken + '"')
   lines.push('')
   
