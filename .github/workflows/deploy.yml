@@ -50,7 +50,8 @@ jobs:
         run: |
           cd frp-plugin
           go mod download
-          GOOS=linux GOARCH=amd64 go build -o frps-panel-linux-amd64 ./cmd/frps-panel
+          # 静态编译，不依赖系统 glibc
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o frps-panel-linux-amd64 ./cmd/frps-panel
 
       - name: Prepare deployment files
         run: |
