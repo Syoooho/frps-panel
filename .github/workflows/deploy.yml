@@ -95,9 +95,7 @@ jobs:
           echo "⏸️  停止现有服务..."
           systemctl stop frps-panel-backend || true
           systemctl stop frps-panel-plugin || true
-          # 强制停止 Nginx 进程
-          pkill -9 nginx || true
-          sleep 2
+          # Nginx 不需要停止，稍后会平滑重载
           
           # 部署前端
           echo "📱 部署前端..."
@@ -267,7 +265,15 @@ jobs:
           systemctl enable frps-panel-plugin
           systemctl start frps-panel-backend
           systemctl start frps-panel-plugin
-          systemctl restart nginx
+          
+          # Nginx 平滑重载配置（不中断服务）
+          if systemctl is-active --quiet nginx; then
+            echo "🔄 重载 Nginx 配置..."
+            systemctl reload nginx
+          else
+            echo "🚀 启动 Nginx..."
+            systemctl start nginx
+          fi
           
           # 检查服务状态
           echo "✅ 检查服务状态..."
