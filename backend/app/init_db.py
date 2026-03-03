@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
 from app.models import user, tunnel, subscription, activation_code, system_config
 from app.core.security import get_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def init_db():
     user.Base.metadata.create_all(bind=engine)
@@ -20,7 +20,7 @@ def init_db():
             hashed_password=get_password_hash("admin123"),
             is_admin=True,
             is_active=True,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         admin_user.generate_frp_token()
         db.add(admin_user)
@@ -33,7 +33,7 @@ def init_db():
             hashed_password=get_password_hash("test1234"),
             is_admin=False,
             is_active=True,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         test_user.generate_frp_token()
         db.add(test_user)
@@ -44,8 +44,8 @@ def init_db():
             user_id=test_user.id,
             plan_type="monthly",
             max_tunnels=10,
-            start_date=datetime.utcnow(),
-            end_date=datetime.utcnow() + timedelta(days=30),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc) + timedelta(days=30),
             is_active=True
         )
         db.add(test_subscription)
@@ -59,7 +59,7 @@ def init_db():
                 code=f"MONTHLY-TEST-{i:04d}",
                 plan_type="monthly",
                 is_used=False,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             )
             db.add(code)
         
@@ -68,7 +68,7 @@ def init_db():
                 code=f"YEARLY-TEST-{i:04d}",
                 plan_type="yearly",
                 is_used=False,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             )
             db.add(code)
         print("✅ 测试兑换码已创建")
