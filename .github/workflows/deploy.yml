@@ -142,84 +142,6 @@ jobs:
             uv run python -m app.init_db
           fi
           
-          # 配置 Nginx
-          echo "🌐 配置 Nginx..."
-          
-          # 检查并安装 Nginx
-          if ! command -v nginx &> /dev/null; then
-            echo "📦 安装 Nginx..."
-            # 检测包管理器并安装
-            if command -v apt-get &> /dev/null; then
-              apt-get update
-              apt-get install -y nginx
-            elif command -v dnf &> /dev/null; then
-              # CentOS/RHEL 使用 dnf，需要 EPEL 仓库
-              dnf install -y epel-release || true
-              dnf makecache
-              dnf install -y nginx
-            elif command -v yum &> /dev/null; then
-              # 旧版 CentOS/RHEL 使用 yum
-              yum install -y epel-release || true
-              yum makecache
-              yum install -y nginx
-            else
-              echo "❌ 无法识别的包管理器"
-              exit 1
-            fi
-          fi
-          
-          # 根据系统类型选择配置路径
-          if [ -d "/etc/nginx/sites-available" ]; then
-            # Debian/Ubuntu 系统
-            NGINX_CONF="/etc/nginx/sites-available/frps-panel"
-            mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-          else
-            # CentOS/RHEL 系统
-            NGINX_CONF="/etc/nginx/conf.d/frps-panel.conf"
-            mkdir -p /etc/nginx/conf.d
-          fi
-          
-          tee $NGINX_CONF > /dev/null << 'NGINX_EOF'
-          server {
-              listen 80;
-              server_name _;
-          
-              # 前端静态文件
-              location / {
-                  root /opt/frps-panel/frontend;
-                  try_files $uri $uri/ /index.html;
-              }
-          
-              # 后端 API
-              location /api/ {
-                  proxy_pass http://127.0.0.1:8000;
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto $scheme;
-              }
-          
-              # Swagger 文档
-              location /docs {
-                  proxy_pass http://127.0.0.1:8000;
-                  proxy_set_header Host $host;
-              }
-          
-              location /openapi.json {
-                  proxy_pass http://127.0.0.1:8000;
-                  proxy_set_header Host $host;
-              }
-          }
-          NGINX_EOF
-          
-          # 创建软链接（仅 Debian/Ubuntu）
-          if [ -d "/etc/nginx/sites-enabled" ]; then
-            ln -sf /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/
-          fi
-          
-          # 测试 Nginx 配置
-          nginx -t
-          
           # 配置后端 systemd 服务
           echo "⚙️  配置后端服务..."
           tee /etc/systemd/system/frps-panel-backend.service > /dev/null << 'SERVICE_EOF'
@@ -267,37 +189,15 @@ jobs:
           systemctl start frps-panel-backend
           systemctl start frps-panel-plugin
           
-          # Nginx 平滑重载配置（不中断服务）
-          echo "🔄 配置 Nginx..."
-          if systemctl is-active --quiet nginx; then
-            echo "Nginx 正在运行，重载配置..."
-            nginx -s reload || systemctl reload nginx || {
-              echo "❌ Nginx 重载失败"
-              nginx -t
-              exit 1
-            }
-          elif pgrep nginx > /dev/null; then
-            echo "Nginx 进程存在但不受 systemd 管理，使用信号重载..."
-            nginx -s reload || {
-              echo "❌ Nginx 重载失败"
-              nginx -t
-              exit 1
-            }
-          else
-            echo "🚀 启动 Nginx..."
-            systemctl start nginx || {
-              echo "❌ Nginx 启动失败"
-              nginx -t
-              journalctl -xe -n 20
-              exit 1
-            }
-          fi
-          
           # 检查服务状态
           echo "✅ 检查服务状态..."
           systemctl status frps-panel-backend --no-pager || true
           systemctl status frps-panel-plugin --no-pager || true
-          systemctl status nginx --no-pager || true
+          
+          echo ""
+          echo "📝 注意：Nginx 配置需要在宝塔面板中手动管理"
+          echo "   前端目录: /opt/frps-panel/frontend"
+          echo "   后端代理: http://127.0.0.1:8000"
           
           echo "🎉 部署完成！"
           echo "前端访问: http://$(curl -s ifconfig.me)"
