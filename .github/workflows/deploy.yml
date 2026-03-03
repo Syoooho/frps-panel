@@ -147,8 +147,18 @@ jobs:
           # 检查并安装 Nginx
           if ! command -v nginx &> /dev/null; then
             echo "📦 安装 Nginx..."
-            apt-get update
-            apt-get install -y nginx
+            # 检测包管理器并安装
+            if command -v apt-get &> /dev/null; then
+              apt-get update
+              apt-get install -y nginx
+            elif command -v yum &> /dev/null; then
+              yum install -y nginx
+            elif command -v dnf &> /dev/null; then
+              dnf install -y nginx
+            else
+              echo "❌ 无法识别的包管理器"
+              exit 1
+            fi
           fi
           
           mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
