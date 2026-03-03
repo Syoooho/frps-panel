@@ -16,6 +16,7 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_admin: bool
+    frp_token: Optional[str] = None
     created_at: datetime
     
     class Config:

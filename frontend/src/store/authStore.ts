@@ -15,7 +15,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
       },
       refreshUser: async () => {
         try {
-          const user = await authService.getCurrentUser()
+          const user = await authService.getMe()
           set({ user })
         } catch (error) {
           console.error('刷新用户信息失败:', error)

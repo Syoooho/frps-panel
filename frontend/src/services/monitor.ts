@@ -44,7 +44,7 @@ export const monitorService = {
       console.log('正在请求监控数据...')
       const data = await api.get('/monitor/overview')
       console.log('API 响应数据:', data)
-      return data as MonitorOverview
+      return data as unknown as MonitorOverview
     } catch (error: any) {
       console.error('监控服务错误:', error)
       console.error('错误响应:', error.response)

@@ -47,12 +47,12 @@ const mockStats = {
 
 export const mockApi = {
   // Auth
-  login: async (email: string, password: string) => {
+  login: async (_email: string, _password: string) => {
     await delay(500)
     return { user: mockUser, access_token: mockToken }
   },
 
-  register: async (email: string, password: string) => {
+  register: async (_email: string, _password: string) => {
     await delay(500)
     return { message: '注册成功' }
   },
@@ -99,7 +99,7 @@ export const mockApi = {
   },
 
   // Profile
-  changePassword: async (currentPassword: string, newPassword: string) => {
+  changePassword: async (_currentPassword: string, _newPassword: string) => {
     await delay(500)
     return { message: '密码修改成功' }
   },

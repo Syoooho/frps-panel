@@ -12,21 +12,29 @@ router = APIRouter()
 
 @router.post("/register", response_model=LoginResponse)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
-    user = create_user(db, request.email, request.password)
-    if not user.frp_token:
-        user.generate_frp_token()
-        db.commit()
-    tokens = create_tokens(user.id)
-    return {
-        **tokens,
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "frp_token": user.frp_token,
-            "is_admin": user.is_admin,
-            "created_at": user.created_at.isoformat()
+    try:
+        user = create_user(db, request.email, request.password)
+        if not user.frp_token:
+            user.generate_frp_token()
+            db.commit()
+        tokens = create_tokens(user.id)
+        return {
+            **tokens,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "frp_token": user.frp_token,
+                "is_admin": user.is_admin,
+                "created_at": user.created_at.isoformat()
+            }
         }
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"注册失败: {str(e)}"
+        )
 
 @router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):

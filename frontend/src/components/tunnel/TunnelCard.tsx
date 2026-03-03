@@ -44,8 +44,46 @@ export const TunnelCard = ({ tunnel, onDelete, onEdit, onCopySuccess }: TunnelCa
   }
   
   const handleCopyConfig = async () => {
-    if (!user?.email || !user?.frp_token) {
-      alert('无法获取用户信息,请重新登录')
+    console.log('当前用户信息:', user)
+    
+    if (!user) {
+      alert('用户未登录，请重新登录')
+      return
+    }
+    
+    if (!user.email) {
+      alert('用户邮箱信息缺失，请重新登录')
+      return
+    }
+    
+    if (!user.frp_token) {
+      alert('FRP Token 缺失，请刷新页面或重新登录')
+      // 尝试刷新用户信息
+      try {
+        await useAuthStore.getState().refreshUser()
+        const updatedUser = useAuthStore.getState().user
+        if (!updatedUser?.frp_token) {
+          alert('无法获取 FRP Token，请联系管理员')
+          return
+        }
+        // 使用更新后的用户信息
+        const config = generateFrpcConfig(
+          tunnel,
+          updatedUser.email,
+          updatedUser.frp_token,
+          serverConfig.addr,
+          serverConfig.port
+        )
+        const success = await copyToClipboard(config)
+        if (success) {
+          onCopySuccess?.()
+        } else {
+          alert('复制失败，请手动复制')
+        }
+      } catch (error) {
+        console.error('刷新用户信息失败:', error)
+        alert('无法刷新用户信息，请重新登录')
+      }
       return
     }
     
@@ -61,7 +99,7 @@ export const TunnelCard = ({ tunnel, onDelete, onEdit, onCopySuccess }: TunnelCa
     if (success) {
       onCopySuccess?.()
     } else {
-      alert('复制失败,请手动复制')
+      alert('复制失败，请手动复制')
     }
   }
 

@@ -37,7 +37,7 @@ export default function Overview() {
     try {
       const data = USE_MOCK 
         ? await mockApi.getStats() 
-        : await api.get('/dashboard/stats')
+        : await api.get('/dashboard/stats') as any
       setStats(data)
     } catch (error) {
       console.error('获取统计数据失败:', error)
