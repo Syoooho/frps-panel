@@ -151,10 +151,16 @@ jobs:
             if command -v apt-get &> /dev/null; then
               apt-get update
               apt-get install -y nginx
-            elif command -v yum &> /dev/null; then
-              yum install -y nginx
             elif command -v dnf &> /dev/null; then
+              # CentOS/RHEL 使用 dnf，需要 EPEL 仓库
+              dnf install -y epel-release || true
+              dnf makecache
               dnf install -y nginx
+            elif command -v yum &> /dev/null; then
+              # 旧版 CentOS/RHEL 使用 yum
+              yum install -y epel-release || true
+              yum makecache
+              yum install -y nginx
             else
               echo "❌ 无法识别的包管理器"
               exit 1
