@@ -167,8 +167,18 @@ jobs:
             fi
           fi
           
-          mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-          tee /etc/nginx/sites-available/frps-panel > /dev/null << 'NGINX_EOF'
+          # 根据系统类型选择配置路径
+          if [ -d "/etc/nginx/sites-available" ]; then
+            # Debian/Ubuntu 系统
+            NGINX_CONF="/etc/nginx/sites-available/frps-panel"
+            mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+          else
+            # CentOS/RHEL 系统
+            NGINX_CONF="/etc/nginx/conf.d/frps-panel.conf"
+            mkdir -p /etc/nginx/conf.d
+          fi
+          
+          tee $NGINX_CONF > /dev/null << 'NGINX_EOF'
           server {
               listen 80;
               server_name _;
@@ -201,7 +211,12 @@ jobs:
           }
           NGINX_EOF
           
-          ln -sf /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/
+          # 创建软链接（仅 Debian/Ubuntu）
+          if [ -d "/etc/nginx/sites-enabled" ]; then
+            ln -sf /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/
+          fi
+          
+          # 测试 Nginx 配置
           nginx -t
           
           # 配置后端 systemd 服务
