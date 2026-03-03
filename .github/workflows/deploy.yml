@@ -95,7 +95,9 @@ jobs:
           echo "⏸️  停止现有服务..."
           systemctl stop frps-panel-backend || true
           systemctl stop frps-panel-plugin || true
-          systemctl stop nginx || true
+          # 强制停止 Nginx 进程
+          pkill -9 nginx || true
+          sleep 2
           
           # 部署前端
           echo "📱 部署前端..."
