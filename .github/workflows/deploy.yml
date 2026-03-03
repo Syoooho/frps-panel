@@ -298,6 +298,8 @@ jobs:
           source: "deploy/*"
           target: "/tmp/frps-panel-deploy"
           strip_components: 1
+          timeout: 300s
+          command_timeout: 300s
 
       - name: Execute deployment script
         uses: appleboy/ssh-action@v1.0.3
@@ -305,6 +307,8 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: root
           key: ${{ secrets.SSH_KEY }}
+          timeout: 600s
+          command_timeout: 600s
           script: |
             cd /tmp/frps-panel-deploy
             chmod +x deploy.sh
