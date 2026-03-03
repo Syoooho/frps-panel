@@ -143,6 +143,14 @@ jobs:
           
           # 配置 Nginx
           echo "🌐 配置 Nginx..."
+          
+          # 检查并安装 Nginx
+          if ! command -v nginx &> /dev/null; then
+            echo "📦 安装 Nginx..."
+            apt-get update
+            apt-get install -y nginx
+          fi
+          
           mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
           tee /etc/nginx/sites-available/frps-panel > /dev/null << 'NGINX_EOF'
           server {
