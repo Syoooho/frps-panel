@@ -96,6 +96,19 @@ sudo journalctl -u frps-panel-backend -f
 
 A: 检查 GitHub Actions 日志，查看具体错误信息。
 
+### Q: 遇到 "uv: command not found" 错误？
+
+A: 这是因为 `uv` 未正确安装或不在 PATH 中。解决方法：
+```bash
+# 重新运行服务器初始化脚本
+curl -fsSL https://raw.githubusercontent.com/your-username/frps-panel/main/scripts/server-setup.sh | sudo bash
+
+# 或手动安装 uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.cargo/bin:$PATH"
+sudo ln -sf $HOME/.cargo/bin/uv /usr/local/bin/uv
+```
+
 ### Q: 服务无法启动？
 
 A: 检查服务日志：
