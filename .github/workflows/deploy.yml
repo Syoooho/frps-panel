@@ -58,6 +58,7 @@ jobs:
           mkdir -p deploy
           cp -r frontend/dist deploy/frontend
           cp -r backend deploy/backend
+          cp -r scripts deploy/
           cp frp-plugin/frps-panel-linux-amd64 deploy/
           cp frp-plugin/config/*.toml deploy/
           cp -r frp_0.67.0_linux_amd64 deploy/
@@ -164,6 +165,20 @@ jobs:
           if [ ! -f "$APP_DIR/backend/frps_panel.db" ]; then
             echo "🗄️  初始化数据库..."
             uv run python -m app.init_db
+          else
+            echo "🔄 更新数据库结构..."
+            # 运行数据库迁移脚本
+            uv run python scripts/init_security_tables.py || true
+            uv run python scripts/update_db_for_encryption.py || true
+          fi
+          
+          # 更新环境变量（添加新配置项）
+          echo "⚙️  更新环境变量..."
+          if ! grep -q "FRP_HTTP_PORT" .env; then
+            echo "FRP_HTTP_PORT=8080" >> .env
+          fi
+          if ! grep -q "FRP_HTTPS_PORT" .env; then
+            echo "FRP_HTTPS_PORT=8443" >> .env
           fi
           
           # 配置后端 systemd 服务
