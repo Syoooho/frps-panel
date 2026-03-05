@@ -26,6 +26,11 @@ export default function Tunnels() {
     local_port: '',
     remote_port: '',
     custom_domain: '',
+    subdomain: '',
+    custom_http_port: '',
+    custom_https_port: '',
+    use_encryption: false,
+    use_compression: false,
   })
 
   useEffect(() => {
@@ -50,6 +55,11 @@ export default function Tunnels() {
         local_port: parseInt(formData.local_port),
         remote_port: formData.remote_port ? parseInt(formData.remote_port) : undefined,
         custom_domain: formData.custom_domain || undefined,
+        subdomain: formData.subdomain || undefined,
+        custom_http_port: formData.custom_http_port ? parseInt(formData.custom_http_port) : undefined,
+        custom_https_port: formData.custom_https_port ? parseInt(formData.custom_https_port) : undefined,
+        use_encryption: formData.use_encryption,
+        use_compression: formData.use_compression,
       }
       
       if (editingTunnel) {
@@ -63,7 +73,18 @@ export default function Tunnels() {
       setIsModalOpen(false)
       setEditingTunnel(null)
       fetchTunnels()
-      setFormData({ name: '', type: 'tcp', local_port: '', remote_port: '', custom_domain: '' })
+      setFormData({ 
+        name: '', 
+        type: 'tcp', 
+        local_port: '', 
+        remote_port: '', 
+        custom_domain: '',
+        subdomain: '',
+        custom_http_port: '',
+        custom_https_port: '',
+        use_encryption: false,
+        use_compression: false,
+      })
     } catch (err: any) {
       const message = err.response?.data?.detail || '操作失败，请重试'
       setToast({ isVisible: true, message, type: 'error' })
@@ -93,6 +114,11 @@ export default function Tunnels() {
       local_port: tunnel.local_port.toString(),
       remote_port: tunnel.remote_port ? tunnel.remote_port.toString() : '',
       custom_domain: tunnel.custom_domain || '',
+      subdomain: tunnel.subdomain || '',
+      custom_http_port: tunnel.custom_http_port ? tunnel.custom_http_port.toString() : '',
+      custom_https_port: tunnel.custom_https_port ? tunnel.custom_https_port.toString() : '',
+      use_encryption: tunnel.use_encryption || false,
+      use_compression: tunnel.use_compression || false,
     })
     setIsModalOpen(true)
   }
@@ -100,7 +126,18 @@ export default function Tunnels() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingTunnel(null)
-    setFormData({ name: '', type: 'tcp', local_port: '', remote_port: '', custom_domain: '' })
+    setFormData({ 
+      name: '', 
+      type: 'tcp', 
+      local_port: '', 
+      remote_port: '', 
+      custom_domain: '',
+      subdomain: '',
+      custom_http_port: '',
+      custom_https_port: '',
+      use_encryption: false,
+      use_compression: false,
+    })
   }
 
   if (loading) {
@@ -206,6 +243,34 @@ export default function Tunnels() {
               onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
             />
           )}
+
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">启用加密传输</label>
+                <p className="text-xs text-slate-500 mt-1">使用 TLS 加密隧道数据传输</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={formData.use_encryption}
+                onChange={(e) => setFormData({ ...formData, use_encryption: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">启用压缩</label>
+                <p className="text-xs text-slate-500 mt-1">压缩传输数据，节省带宽</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={formData.use_compression}
+                onChange={(e) => setFormData({ ...formData, use_compression: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded cursor-pointer"
+              />
+            </div>
+          </div>
 
           <div className="flex space-x-3 pt-4">
             <Button 
