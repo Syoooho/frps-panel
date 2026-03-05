@@ -22,10 +22,11 @@ GitHub Actions
 
 ## 服务器要求
 
-- 操作系统: Ubuntu 20.04+ / Debian 11+
+- 操作系统: Ubuntu 20.04+ / Debian 11+ / CentOS 7+
 - 内存: 至少 2GB
 - 磁盘: 至少 10GB
 - 开放端口: 80, 443, 7000, 7200
+- 需要 root 权限
 
 ## 首次部署步骤
 
@@ -145,9 +146,12 @@ git push origin main
 
 ## 服务管理命令
 
-### 查看服务状态
+### 服务管理
 
 ```bash
+# 查看 FRP 服务器
+sudo systemctl status frps
+
 # 查看后端服务
 sudo systemctl status frps-panel-backend
 
@@ -161,6 +165,9 @@ sudo systemctl status nginx
 ### 重启服务
 
 ```bash
+# 重启 FRP 服务器
+sudo systemctl restart frps
+
 # 重启后端
 sudo systemctl restart frps-panel-backend
 
@@ -174,6 +181,9 @@ sudo systemctl restart nginx
 ### 查看日志
 
 ```bash
+# FRP 服务器日志
+sudo journalctl -u frps -f
+
 # 后端日志
 sudo journalctl -u frps-panel-backend -f
 
@@ -201,9 +211,13 @@ sudo tail -f /opt/frps-panel/backend/logs/app.log
 │   ├── requirements.txt
 │   ├── frps_panel.db     # SQLite 数据库
 │   └── logs/             # 日志文件
+├── frp/                   # FRP 二进制文件
+│   ├── frps              # FRP 服务器
+│   ├── frpc              # FRP 客户端
+│   ├── frps.toml         # FRP 服务器配置
+│   └── LICENSE
 ├── frps-panel            # FRP 插件可执行文件
 ├── frps-panel.toml       # 插件配置
-├── frps.toml             # FRP 服务器配置
 └── .env                  # 环境变量
 ```
 
@@ -269,17 +283,22 @@ sudo systemctl start frps-panel-plugin
 ### 服务无法启动
 
 ```bash
-# 检查服务状态
-sudo systemctl status frps-panel-backend
-sudo systemctl status frps-panel-plugin
+# 检查 FRP 服务器状态
+sudo systemctl status frps
+sudo journalctl -u frps -n 100
 
-# 查看详细日志
+# 检查后端服务状态
+sudo systemctl status frps-panel-backend
 sudo journalctl -u frps-panel-backend -n 100
+
+# 检查插件服务状态
+sudo systemctl status frps-panel-plugin
 sudo journalctl -u frps-panel-plugin -n 100
 
 # 检查端口占用
-sudo netstat -tlnp | grep 8000
+sudo netstat -tlnp | grep 7000
 sudo netstat -tlnp | grep 7200
+sudo netstat -tlnp | grep 8000
 ```
 
 ### 前端无法访问

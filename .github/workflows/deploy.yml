@@ -60,6 +60,9 @@ jobs:
           cp -r backend deploy/backend
           cp frp-plugin/frps-panel-linux-amd64 deploy/
           cp frp-plugin/config/*.toml deploy/
+          cp -r frp_0.67.0_linux_amd64 deploy/
+          cp frp-plugin/frps-panel-linux-amd64 deploy/
+          cp frp-plugin/config/*.toml deploy/
           
       - name: Create backend .env file
         run: |
@@ -94,6 +97,7 @@ jobs:
           
           # 停止服务
           echo "⏸️  停止现有服务..."
+          systemctl stop frps || true
           systemctl stop frps-panel-backend || true
           systemctl stop frps-panel-plugin || true
           # Nginx 不需要停止，稍后会平滑重载
@@ -117,6 +121,13 @@ jobs:
           cp frps-panel-linux-amd64 $APP_DIR/frps-panel
           chmod +x $APP_DIR/frps-panel
           cp *.toml $APP_DIR/ || true
+          
+          # 部署 FRP 二进制文件
+          echo "📦 部署 FRP 二进制文件..."
+          rm -rf $APP_DIR/frp
+          cp -r frp_0.67.0_linux_amd64 $APP_DIR/frp
+          chmod +x $APP_DIR/frp/frps
+          chmod +x $APP_DIR/frp/frpc
           
           # 安装后端依赖
           echo "📦 安装后端依赖..."
@@ -166,12 +177,31 @@ jobs:
           WantedBy=multi-user.target
           SERVICE_EOF
           
+          # 配置 FRP 服务器 systemd 服务
+          echo "⚙️  配置 FRP 服务器服务..."
+          tee /etc/systemd/system/frps.service > /dev/null << 'FRPS_EOF'
+          [Unit]
+          Description=FRP Server
+          After=network.target
+          
+          [Service]
+          Type=simple
+          User=root
+          WorkingDirectory=/opt/frps-panel/frp
+          ExecStart=/opt/frps-panel/frp/frps -c /opt/frps-panel/frp/frps.toml
+          Restart=always
+          RestartSec=10
+          
+          [Install]
+          WantedBy=multi-user.target
+          FRPS_EOF
+          
           # 配置插件 systemd 服务
           echo "⚙️  配置插件服务..."
           tee /etc/systemd/system/frps-panel-plugin.service > /dev/null << 'PLUGIN_EOF'
           [Unit]
           Description=FRP Panel Plugin
-          After=network.target frps-panel-backend.service
+          After=network.target frps.service frps-panel-backend.service
           
           [Service]
           Type=simple
@@ -188,13 +218,18 @@ jobs:
           # 重载并启动服务
           echo "🚀 启动服务..."
           systemctl daemon-reload
+          systemctl enable frps
           systemctl enable frps-panel-backend
           systemctl enable frps-panel-plugin
+          systemctl start frps
+          sleep 2
           systemctl start frps-panel-backend
+          sleep 2
           systemctl start frps-panel-plugin
           
           # 检查服务状态
           echo "✅ 检查服务状态..."
+          systemctl status frps --no-pager || true
           systemctl status frps-panel-backend --no-pager || true
           systemctl status frps-panel-plugin --no-pager || true
           

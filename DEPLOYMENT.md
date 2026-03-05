@@ -88,14 +88,17 @@ git push origin main
 
 ```bash
 # 查看状态
+sudo systemctl status frps
 sudo systemctl status frps-panel-backend
 sudo systemctl status frps-panel-plugin
 
 # 重启服务
+sudo systemctl restart frps
 sudo systemctl restart frps-panel-backend
 sudo systemctl restart frps-panel-plugin
 
 # 查看日志
+sudo journalctl -u frps -f
 sudo journalctl -u frps-panel-backend -f
 ```
 
@@ -128,7 +131,9 @@ sudo uv --version
 
 A: 检查服务日志：
 ```bash
+sudo journalctl -u frps -n 50
 sudo journalctl -u frps-panel-backend -n 50
+sudo journalctl -u frps-panel-plugin -n 50
 ```
 
 ### Q: 如何配置 HTTPS？

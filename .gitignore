@@ -127,9 +127,7 @@ design-system/dist/
 # screenshots/
 
 # FRP binaries (已下载的 FRP 二进制文件)
-frp_*/
-!frp_0.67.0_linux_amd64/frps
-!frp_0.67.0_linux_amd64/frpc
+# 保留 frp_0.67.0_linux_amd64 目录用于部署
 
 # Alembic
 backend/alembic/versions/*.pyc
