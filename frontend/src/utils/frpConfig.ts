@@ -25,8 +25,8 @@ export function generateFrpcConfig(
   lines.push('# 用户认证信息')
   lines.push('user = "' + userEmail + '"')
   lines.push('')
-  lines.push('[metas]')
-  lines.push('token = "' + frpToken + '"')
+  lines.push('# FRP Token (从个人信息页面获取)')
+  lines.push('metadatas.token = "' + frpToken + '"')
   lines.push('')
   
   // 隧道配置

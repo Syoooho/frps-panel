@@ -10,13 +10,15 @@ class FRPLoginRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        return self.content.get("user", "")
+        return str(self.content.get("user", ""))
     
     @property
     def token(self) -> str:
         """获取 token"""
         metas = self.content.get("metas", {})
-        return metas.get("token", "")
+        if isinstance(metas, dict):
+            return str(metas.get("token", ""))
+        return ""
 
 
 class FRPLoginResponse(BaseModel):
@@ -33,37 +35,49 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        return self.content.get("user", "")
+        return str(self.content.get("user", ""))
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("proxy_name", "")
+        if isinstance(proxy_info, dict):
+            return str(proxy_info.get("proxy_name", ""))
+        return ""
     
     @property
     def proxy_type(self) -> str:
         """获取代理类型"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("proxy_type", "")
+        if isinstance(proxy_info, dict):
+            return str(proxy_info.get("proxy_type", ""))
+        return ""
     
     @property
     def remote_port(self) -> Optional[int]:
         """获取远程端口"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("remote_port")
+        if isinstance(proxy_info, dict):
+            port = proxy_info.get("remote_port")
+            return int(port) if port else None
+        return None
     
     @property
     def custom_domains(self) -> list:
         """获取自定义域名"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("custom_domains", [])
+        if isinstance(proxy_info, dict):
+            domains = proxy_info.get("custom_domains", [])
+            return domains if isinstance(domains, list) else []
+        return []
     
     @property
     def subdomain(self) -> str:
         """获取子域名"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("subdomain", "")
+        if isinstance(proxy_info, dict):
+            return str(proxy_info.get("subdomain", ""))
+        return ""
 
 
 class FRPNewProxyResponse(BaseModel):
@@ -80,13 +94,15 @@ class FRPCloseProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        return self.content.get("user", "")
+        return str(self.content.get("user", ""))
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
         proxy_info = self.content.get("proxy_info", {})
-        return proxy_info.get("proxy_name", "")
+        if isinstance(proxy_info, dict):
+            return str(proxy_info.get("proxy_name", ""))
+        return ""
 
 
 class FRPCloseProxyResponse(BaseModel):

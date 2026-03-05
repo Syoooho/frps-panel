@@ -7,9 +7,9 @@ serverPort = 7000
 # 用户名使用注册的邮箱
 user = "test@example.com"
 
-# token 使用 FRP Token (可在个人信息页面查看)
-[metas]
-token = "your-frp-token-here"
+# FRP Token (可在个人信息页面查看)
+# FRP 0.67.0+ 使用 metadatas.token 格式
+metadatas.token = "your-frp-token-here"
 
 # TCP 隧道示例
 [[proxies]]
