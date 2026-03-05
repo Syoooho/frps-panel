@@ -157,7 +157,7 @@ server_port = {server_port}
 """
         
         # 如果启用加密，添加 TLS 配置
-        if tunnel.use_encryption:
+        if tunnel.use_encryption is True:
             config += """# TLS 加密传输
 tls_enable = true
 """
@@ -204,11 +204,11 @@ local_port = {tunnel.local_port}
                     config += f"# 访问地址: https://{tunnel.subdomain}.yourdomain.com:{https_port}\n"
         
         # 如果启用压缩
-        if tunnel.use_compression:
+        if tunnel.use_compression is True:
             config += "use_compression = true\n"
         
         # 如果启用加密
-        if tunnel.use_encryption:
+        if tunnel.use_encryption is True:
             config += "use_encryption = true\n"
         
         return {
