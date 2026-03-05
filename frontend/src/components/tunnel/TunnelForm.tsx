@@ -29,6 +29,8 @@ export const TunnelForm = ({ onSubmit, onCancel, initialData }: TunnelFormProps)
       ...formData,
       local_port: Number(formData.local_port),
       remote_port: formData.remote_port ? Number(formData.remote_port) : undefined,
+      custom_http_port: formData.custom_http_port ? Number(formData.custom_http_port) : undefined,
+      custom_https_port: formData.custom_https_port ? Number(formData.custom_https_port) : undefined,
     })
   }
 
