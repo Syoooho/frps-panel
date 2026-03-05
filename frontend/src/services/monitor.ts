@@ -4,6 +4,7 @@ export interface SystemStats {
   cpu_percent: number
   memory_percent: number
   disk_percent: number
+  frps_running: boolean
 }
 
 export interface TunnelStats {

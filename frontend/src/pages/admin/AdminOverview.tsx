@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Users, Network, Activity, Gift, Cpu, HardDrive, Database } from 'lucide-react'
+import { Users, Network, Activity, Gift, Cpu, HardDrive, Database, Server } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import { monitorService, MonitorOverview } from '../../services/monitor'
 import { useAuthStore } from '../../store/authStore'
@@ -43,7 +43,7 @@ export default function AdminOverview() {
       {/* 系统资源监控 */}
       <div>
         <h2 className="text-lg font-semibold text-slate-700 mb-4">系统资源</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card hoverable={false} className="border-l-4 border-l-blue-500">
             <div className="flex items-center justify-between">
               <div>
@@ -82,6 +82,20 @@ export default function AdminOverview() {
               </div>
               <div className="bg-orange-100 p-3 rounded-lg">
                 <HardDrive className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card hoverable={false} className={`border-l-4 ${data?.system?.frps_running ? 'border-l-green-500' : 'border-l-red-500'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">FRP 服务器</p>
+                <p className={`text-2xl font-bold ${data?.system?.frps_running ? 'text-green-600' : 'text-red-600'}`}>
+                  {data?.system?.frps_running ? '运行中' : '已停止'}
+                </p>
+              </div>
+              <div className={`${data?.system?.frps_running ? 'bg-green-100' : 'bg-red-100'} p-3 rounded-lg`}>
+                <Server className={`w-6 h-6 ${data?.system?.frps_running ? 'text-green-600' : 'text-red-600'}`} />
               </div>
             </div>
           </Card>

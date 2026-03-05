@@ -102,6 +102,12 @@ jobs:
           systemctl stop frps-panel-plugin || true
           systemctl stop nginx || true
           
+          # 备份数据库
+          if [ -f "$APP_DIR/backend/frps_panel.db" ]; then
+            echo "💾 备份数据库..."
+            cp $APP_DIR/backend/frps_panel.db /tmp/frps_panel.db.backup
+          fi
+          
           # 部署前端
           echo "📱 部署前端..."
           rm -rf $APP_DIR/frontend
@@ -111,6 +117,13 @@ jobs:
           echo "🔧 部署后端..."
           rm -rf $APP_DIR/backend
           cp -r backend $APP_DIR/
+          
+          # 恢复数据库
+          if [ -f "/tmp/frps_panel.db.backup" ]; then
+            echo "♻️  恢复数据库..."
+            cp /tmp/frps_panel.db.backup $APP_DIR/backend/frps_panel.db
+            rm /tmp/frps_panel.db.backup
+          fi
           
           # 部署插件
           echo "🔌 部署插件..."

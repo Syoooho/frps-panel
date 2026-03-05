@@ -1,5 +1,6 @@
 """系统监控服务"""
 import psutil
+import subprocess
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.user import User
@@ -31,11 +32,52 @@ class MonitorService:
         disk = psutil.disk_usage('/')
         disk_percent = disk.percent
         
+        # 检查 frps 服务状态
+        frps_running = MonitorService.check_frps_status()
+        
         return {
             "cpu_percent": cpu_percent,
             "memory_percent": memory_percent,
-            "disk_percent": disk_percent
+            "disk_percent": disk_percent,
+            "frps_running": frps_running
         }
+    
+    @staticmethod
+    def check_frps_status() -> bool:
+        """
+        检查 frps 服务是否运行
+        
+        Returns:
+            True 如果运行，False 如果未运行
+        """
+        try:
+            # 方法1: 检查 systemd 服务状态
+            result = subprocess.run(
+                ['systemctl', 'is-active', 'frps'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.stdout.strip() == 'active':
+                return True
+        except:
+            pass
+        
+        try:
+            # 方法2: 检查进程
+            for proc in psutil.process_iter(['name', 'cmdline']):
+                try:
+                    if proc.info['name'] == 'frps' or (
+                        proc.info['cmdline'] and 
+                        any('frps' in cmd for cmd in proc.info['cmdline'])
+                    ):
+                        return True
+                except:
+                    continue
+        except:
+            pass
+        
+        return False
     
     @staticmethod
     def get_tunnel_stats(db: Session) -> Dict[str, Any]:
