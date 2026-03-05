@@ -51,6 +51,7 @@ frontend/.turbo/
 # IDE
 .vscode/
 .idea/
+.kiro/
 *.swp
 *.swo
 *~
