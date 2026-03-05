@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     FRP_PLUGIN_URL: str = "http://localhost:7200"
     FRP_SERVER_ADDR: str = "127.0.0.1"
     FRP_SERVER_PORT: int = 7000
+    FRP_HTTP_PORT: int = 8080
+    FRP_HTTPS_PORT: int = 8443
     
     class Config:
         env_file = ".env"
