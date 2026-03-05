@@ -15,9 +15,14 @@ class FRPLoginRequest(BaseModel):
     @property
     def token(self) -> str:
         """获取 token"""
+        # FRP 0.67.0: metas 直接在 content 中
         metas = self.content.get("metas", {})
         if isinstance(metas, dict):
-            return str(metas.get("token", ""))
+            token = metas.get("token", "")
+            if token:
+                return str(token)
+        
+        # 如果没有找到，返回空字符串
         return ""
 
 
@@ -35,33 +40,50 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        user = str(self.content.get("user", ""))
-        # FRP 0.67.0 可能在 proxy_name 中包含用户前缀，格式为 user.proxy_name
-        # 如果 user 为空，尝试从 proxy_name 中提取
-        if not user:
-            proxy_info = self.content.get("proxy_info", {})
-            if isinstance(proxy_info, dict):
-                proxy_name = str(proxy_info.get("proxy_name", ""))
-                # 如果包含 '.'，则前面部分是用户名
-                if '.' in proxy_name:
-                    user = proxy_name.rsplit('.', 1)[0]
-        return user
+        user_data = self.content.get("user", "")
+        
+        # FRP 0.67.0: user 可能是字典 {'user': 'email', 'metas': {...}, 'run_id': '...'}
+        if isinstance(user_data, dict):
+            return str(user_data.get("user", ""))
+        
+        # 旧版本: user 是字符串
+        if isinstance(user_data, str):
+            return user_data
+        
+        # 如果都没有，尝试从 proxy_name 中提取
+        proxy_name = str(self.content.get("proxy_name", ""))
+        if '.' in proxy_name:
+            return proxy_name.rsplit('.', 1)[0]
+        
+        return ""
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
-        proxy_info = self.content.get("proxy_info", {})
-        if isinstance(proxy_info, dict):
-            proxy_name = str(proxy_info.get("proxy_name", ""))
-            # FRP 0.67.0 的代理名格式为 user.proxy_name，需要去掉用户前缀
-            if '.' in proxy_name:
-                return proxy_name.rsplit('.', 1)[1]
-            return proxy_name
-        return ""
+        # FRP 0.67.0: proxy_name 直接在 content 中
+        proxy_name = str(self.content.get("proxy_name", ""))
+        
+        # 如果没有，尝试从 proxy_info 中获取
+        if not proxy_name:
+            proxy_info = self.content.get("proxy_info", {})
+            if isinstance(proxy_info, dict):
+                proxy_name = str(proxy_info.get("proxy_name", ""))
+        
+        # 去掉用户前缀（格式：user.proxy_name）
+        if '.' in proxy_name:
+            return proxy_name.rsplit('.', 1)[1]
+        
+        return proxy_name
     
     @property
     def proxy_type(self) -> str:
         """获取代理类型"""
+        # FRP 0.67.0: proxy_type 直接在 content 中
+        proxy_type = self.content.get("proxy_type", "")
+        if proxy_type:
+            return str(proxy_type)
+        
+        # 旧版本: 在 proxy_info 中
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
             return str(proxy_info.get("proxy_type", ""))
@@ -70,6 +92,12 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def remote_port(self) -> Optional[int]:
         """获取远程端口"""
+        # FRP 0.67.0: remote_port 直接在 content 中
+        port = self.content.get("remote_port")
+        if port:
+            return int(port)
+        
+        # 旧版本: 在 proxy_info 中
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
             port = proxy_info.get("remote_port")
@@ -79,6 +107,12 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def custom_domains(self) -> list:
         """获取自定义域名"""
+        # FRP 0.67.0: custom_domains 直接在 content 中
+        domains = self.content.get("custom_domains", [])
+        if isinstance(domains, list):
+            return domains
+        
+        # 旧版本: 在 proxy_info 中
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
             domains = proxy_info.get("custom_domains", [])
@@ -88,6 +122,12 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def subdomain(self) -> str:
         """获取子域名"""
+        # FRP 0.67.0: subdomain 直接在 content 中
+        subdomain = self.content.get("subdomain", "")
+        if subdomain:
+            return str(subdomain)
+        
+        # 旧版本: 在 proxy_info 中
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
             return str(proxy_info.get("subdomain", ""))
@@ -108,29 +148,40 @@ class FRPCloseProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        user = str(self.content.get("user", ""))
-        # FRP 0.67.0 可能在 proxy_name 中包含用户前缀，格式为 user.proxy_name
-        # 如果 user 为空，尝试从 proxy_name 中提取
-        if not user:
-            proxy_info = self.content.get("proxy_info", {})
-            if isinstance(proxy_info, dict):
-                proxy_name = str(proxy_info.get("proxy_name", ""))
-                # 如果包含 '.'，则前面部分是用户名
-                if '.' in proxy_name:
-                    user = proxy_name.rsplit('.', 1)[0]
-        return user
+        user_data = self.content.get("user", "")
+        
+        # FRP 0.67.0: user 可能是字典
+        if isinstance(user_data, dict):
+            return str(user_data.get("user", ""))
+        
+        # 旧版本: user 是字符串
+        if isinstance(user_data, str):
+            return user_data
+        
+        # 如果都没有，尝试从 proxy_name 中提取
+        proxy_name = str(self.content.get("proxy_name", ""))
+        if '.' in proxy_name:
+            return proxy_name.rsplit('.', 1)[0]
+        
+        return ""
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
-        proxy_info = self.content.get("proxy_info", {})
-        if isinstance(proxy_info, dict):
-            proxy_name = str(proxy_info.get("proxy_name", ""))
-            # FRP 0.67.0 的代理名格式为 user.proxy_name，需要去掉用户前缀
-            if '.' in proxy_name:
-                return proxy_name.rsplit('.', 1)[1]
-            return proxy_name
-        return ""
+        # FRP 0.67.0: proxy_name 直接在 content 中
+        proxy_name = str(self.content.get("proxy_name", ""))
+        
+        # 如果没有，尝试从 proxy_info 中获取
+        if not proxy_name:
+            proxy_info = self.content.get("proxy_info", {})
+            if isinstance(proxy_info, dict):
+                proxy_name = str(proxy_info.get("proxy_name", ""))
+        
+        # 去掉用户前缀
+        if '.' in proxy_name:
+            return proxy_name.rsplit('.', 1)[1]
+        
+        return proxy_name
 
 
 class FRPCloseProxyResponse(BaseModel):
