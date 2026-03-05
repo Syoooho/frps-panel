@@ -6,6 +6,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.database import engine, Base
+# 导入所有模型以确保外键关系正确
+from app.models.user import User
+from app.models.tunnel import Tunnel
+from app.models.subscription import Subscription
+from app.models.activation_code import ActivationCode
 from app.models.login_log import LoginLog, LoginAttempt
 from app.models.audit_log import AuditLog
 
