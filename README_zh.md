@@ -1,207 +1,200 @@
-# frps-panel(支持 FRP >= 0.52.0)
+# FRP SaaS 平台
 
-[README](README.md) | [中文文档](README_zh.md)
+基于 FRP (Fast Reverse Proxy) 的现代化 SaaS 平台，为个人开发者提供内网穿透服务。
 
-frps-panel 是 [frp](https://github.com/fatedier/frp) 的一个服务端插件，用于查看服务器信息以及支持多用户鉴权。
+[English](./README.md) | [部署指南](./docs/deployment.md)
 
-frps-panel 会以一个单独的进程运行，并接收 frps 发送过来的 HTTP 请求。
+## 功能特性
 
-## 从版本2.0.0开始，本插件只支持版本号大于等于v0.52.0的frp
+- 🔐 用户注册和邮箱登录
+- 🎫 兑换码激活订阅（月付10端口，年付100端口）
+- 🚇 隧道管理（TCP/UDP/HTTP/HTTPS）
+- 📊 管理员后台（实时监控）
+- ♾️ 流量不限
+- 👥 多用户鉴权
+- 🔒 端口、域名、二级域名限制
+- 📈 系统资源监控（CPU、内存、磁盘、FRP 状态）
+- 📝 结构化日志系统
+- 🔄 自动化部署（数据库保护）
 
-![支持英文](screenshots/i18n.png)
-![登录页面](screenshots/login.png)
-![服务器信息](screenshots/server%20info.png)
-![用户列表](screenshots/user%20list.png)
-![新增列表](screenshots/new%20user.png)
-![代理列表](screenshots/proxy%20list.png)
-![代理流量统计](screenshots/proxy%20traffic%20statistics.png)
-![自动深色模式](screenshots/dark%20mode.png)
+## 技术栈
 
+### 前端
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Zustand（状态管理）
+- React Router v6
+- React Hook Form
 
-### 功能
+### 后端
+- FastAPI
+- SQLAlchemy + SQLite
+- JWT 认证
+- Bcrypt 密码哈希
+- Pydantic 数据验证
+- 结构化日志
 
-+ **支持展示服务器信息**
-+ **支持多用户鉴权**
-+ **动态`添加`、`删除`、`禁用`、`启用`用户**
-+ **对用户的`端口`、`域名`、`二级域名`进行限制**
+### 插件
+- Go 1.21+
+- FRP 0.67.0+
 
-***用户被`删除`或`禁用`后，不会马上生效，需要等一段时间***
+## 快速开始
 
-***用户`端口`、`域名`、`二级域名`限制仅在建立新连接(`NewProxy`)时生效***
+### 环境要求
 
-### 下载
+- Python 3.11+
+- Node.js 18+
+- uv（Python 包管理器）
+- npm
 
-通过 [Release](../../releases) 页面下载对应系统版本的二进制文件到本地。
+### 1. 初始化数据库
 
-### 要求
-
-需要 frp 版本 >= v0.52.3
-
-### 使用示例
-
-1. 创建 `frps-panel.toml` 文件，内容为基础配置。
-
-```toml
-# frps-panel.toml
-[common]
-# frps panel config info
-plugin_addr = "127.0.0.1"
-plugin_port = 7200
-#admin_user = "admin"
-#admin_pwd = "admin"
-# specified login state keep time
-admin_keep_time = 0
-
-# enable tls
-tls_mode = false
-# tls_cert_file = "cert.crt"
-# tls_key_file = "cert.key"
-
-# frp dashboard info
-dashboard_addr = "127.0.0.1"
-dashboard_port = 7500
-dashboard_user = "admin"
-dashboard_pwd = "admin"
+```bash
+cd backend
+uv run python -m app.init_db
 ```
 
-2. 创建`frps-tokens.toml`文件，其内容为系统中的用户，该文件位置和`frps-panel.toml`相同。如不创建此文件，在增加用户时会自动创建。
+### 2. 启动后端服务
 
-```toml
-#frps-tokens.toml
-[tokens]
-   [tokens.user1]
-      user = "user1"
-      token = "token1"
-      comment = "user1 with token1"
-      ports = [8080, "10000-10200"]
-      domains = ["web01.domain.com", "web02.domain.com"]
-      subdomains = ["web01", "web02"]
-      enable = true
-   [tokens.user2]
-      user = "user2"
-      token = "token2"
-      comment = "user2 with token2"
-      ports = [9080]
-      domains = ["web11.domain.com", "web12.domain.com"]
-      subdomains = ["web11", "web12"]
-      enable = false
+```bash
+cd backend
+uv run uvicorn app.main:app --reload
 ```
 
-3. 运行 frps-panel，指定配置文件路径。
+后端运行在 http://localhost:8000
+- API 文档：http://localhost:8000/docs
+- ReDoc：http://localhost:8000/redoc
 
-    `./frps-panel -c ./frps-panel.toml`
+### 3. 启动前端应用
 
-4. 在 frps 的配置文件中注册插件，并启动。
-
-```toml
-# frps.toml
-bindPort = 7000
-
-[[httpPlugins]]
-name = "frps-panel"
-addr = "127.0.0.1:7200"
-path = "/handler"
-ops = ["Login","NewWorkConn","NewUserConn","NewProxy","Ping"]
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-5. 在 frpc 中指定用户名，在 metadatas 中指定 token，用户名以及 `metadatas.token` 的内容需要和之前创建的 token 文件匹配。
+前端运行在 http://localhost:3000
 
-    user1 的配置:
+### 4. 启动 FRP 服务器和插件
 
-```toml
-# frpc.toml
-serverAddr = "127.0.0.1"
-serverPort = 7000
-user = "user1"
-metadatas.token = "123"
+```bash
+# 启动 FRP 服务器
+cd frp_0.67.0_linux_amd64
+./frps -c frps.toml
 
-[[proxies]]
-type = "tcp"
-localIP = 22
-localPort = 8080
-```
-或
-```toml
-# frpc.toml
-serverAddr = "127.0.0.1"
-serverPort = 7000
-user = "user1"
-[metadatas]
-token = "123"
-
-[[proxies]]
-type = "tcp"
-localIP = 22
-localPort = 8080
+# 启动插件（另一个终端）
+cd frp-plugin
+go build -o frps-panel ./cmd/frps-panel
+./frps-panel -c config/frps-panel.toml
 ```
 
-    user2 的配置:（由于示例文件中user2被禁用，因此无法连接）
+## 测试账号
 
-```toml
-# frpc.toml
-serverAddr = "127.0.0.1"
-serverPort = 7000
-user = "user2"
-metadatas.token = "abc"
+- **管理员**：admin@example.com / admin123
+- **普通用户**：test@example.com / test1234（带月付订阅）
 
-[[proxies]]
-type = "tcp"
-local_port = 22
-remote_port = 6000
+测试兑换码：
+- 月付：MONTHLY-TEST-0000 ~ 0004
+- 年付：YEARLY-TEST-0000 ~ 0004
+
+## 项目结构
+
 ```
-或
-```toml
-# frpc.toml
-serverAddr = "127.0.0.1"
-serverPort = 7000
-user = "user2"
-[metadatas]
-token = "abc"
-
-[[proxies]]
-type = "tcp"
-local_port = 22
-remote_port = 6000
+frps-panel/
+├── backend/              # FastAPI 后端服务
+│   ├── app/             # 应用代码
+│   │   ├── api/         # API 路由
+│   │   ├── models/      # 数据库模型
+│   │   ├── schemas/     # Pydantic 模式
+│   │   ├── services/    # 业务逻辑
+│   │   └── core/        # 核心工具
+│   ├── logs/            # 应用日志
+│   └── tests/           # 测试文件
+├── frontend/            # React 前端应用
+│   ├── src/
+│   │   ├── components/  # React 组件
+│   │   ├── pages/       # 页面组件
+│   │   ├── services/    # API 服务
+│   │   ├── store/       # 状态管理
+│   │   └── utils/       # 工具函数
+│   └── public/          # 静态资源
+├── frp-plugin/          # Go FRP 插件
+│   ├── cmd/             # 命令入口
+│   ├── config/          # 配置文件
+│   └── pkg/             # 插件包
+├── docs/                # 文档
+│   ├── api/             # API 文档
+│   └── plans/           # 设计文档
+├── scripts/             # 工具脚本
+│   ├── rollback.sh      # 回滚脚本
+│   └── ...
+└── .github/             # GitHub Actions 工作流
+    └── workflows/
+        └── deploy.yml   # 自动部署
 ```
 
-6.浏览器中输入地址: http://127.0.0.1:7200 或 https://127.0.0.1:7200 进入管理页面进行用户管理
+## 开发状态
 
-## 以服务的形式运行
+### 已完成 ✅
 
-本实例是在 `ubuntu` 下， 以 `root` 用户执操作
+- ✅ 项目骨架搭建（前端 + 后端 + 插件）
+- ✅ 用户认证系统（注册、登录、JWT）
+- ✅ 完整前端实现（所有页面和组件）
+- ✅ 完整后端 API 实现（所有接口）
+- ✅ 前后端联调（100% API 测试通过）
+- ✅ FRP 插件集成（Go 插件 + HTTP 服务器）
+- ✅ 系统监控和日志（CPU、内存、磁盘、FRP 状态）
+- ✅ 隧道管理（创建、编辑、删除、复制配置）
+- ✅ 管理员后台（用户管理、兑换码管理、系统配置）
+- ✅ 数据库初始化和迁移
+- ✅ API 文档（Swagger UI）
+- ✅ 自动化部署（GitHub Actions）
+- ✅ 数据库保护（部署时备份和恢复）
+- ✅ 回滚脚本（轻松回滚到之前版本）
 
-+ 1、解压 `frps-panel.zip` 到目录 `/root/frps-panel`
-+ 2、在目录 `/root/frps-panel` 下 用命令创建文件：`touch frps-panel.service`。创建后修改文件内容：
-```ini
-[Unit]
-Description = frp multiuser service
-After = network.target syslog.target
-Wants = network.target
+### 待开发 📋
 
-[Service]
-Type = simple
-# 启动frps-panel的配置文件路径，需修改为您的frps-panel.toml的路径
-Environment=FRPS_PANEL_OPTS="-c /root/frps-panel/frps-panel.toml"
-# 启动frps-panel的命令，需修改为您的frps-panel的安装路径
-ExecStart = /root/frps-panel/frps-panel $FRPS_PANEL_OPTS
+- WebSocket 实时状态推送
+- 邮件通知系统
+- 多节点支持
 
-[Install]
-WantedBy = multi-user.target
+## 文档
+
+- [部署指南](./docs/deployment.md) - 生产环境部署指南
+- [API 文档](./docs/api/README.md) - API 文档
+- [集成测试报告](./backend/tests/test_integration.md) - 集成测试报告
+
+## 部署
+
+查看 [部署指南](./docs/deployment.md) 了解生产环境部署说明。
+
+### 快速部署
+
+项目包含通过 GitHub Actions 的自动部署。只需推送到 main 分支：
+
+```bash
+git push origin main
 ```
-+ 3、复制服务文件： `cp /root/frps-panel.service /etc/systemd/system/`
-+ 4、重载服务： `systemctl daemon-reload`
-+ 5、启动服务： `service frps-panel start`
 
-## 使用
+### 回滚
 
-___如果要从外网访问管理界面, 需要把配置中的 `plugin_addr` 改为 `0.0.0.0`___
+如果需要回滚到之前的版本：
 
-如果使用中有问题或者有其他想法，在[issues](https://github.com/yhl452493373/frps-panel/issues)上提出来。 如果我能搞定的话，我尽量搞。
+```bash
+ssh root@your-server
+cd /opt/frps-panel
+./scripts/rollback.sh
+```
+
+## 贡献
+
+欢迎贡献！请随时提交 Pull Request。
+
+## 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 致谢
 
-+ [frp](https://github.com/fatedier/frp)
-+ [fp-multiuser](https://github.com/gofrp/fp-multiuser)
-+ [layui](https://github.com/layui/layui)
-+ [layui-theme-dark](https://github.com/Sight-wcg/layui-theme-dark)
-+ [echarts](https://github.com/apache/echarts)
+基于 [frps-panel](https://github.com/yhl452493373/frps-panel) by yhl452493373

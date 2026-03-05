@@ -129,6 +129,11 @@ design-system/dist/
 # FRP binaries (已下载的 FRP 二进制文件)
 # 保留 frp_0.67.0_linux_amd64 目录用于部署
 
+# FRP 测试配置
+frpc-test.toml
+frpc-*.toml
+test-*.toml
+
 # Alembic
 backend/alembic/versions/*.pyc
 
@@ -144,7 +149,3 @@ $RECYCLE.BIN/
 # Linux
 .directory
 .Trash-*
-
-# 非必要文档（临时状态记录）
-PROJECT_STATUS.md
-CLEANUP_SUMMARY.md
