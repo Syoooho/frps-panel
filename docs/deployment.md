@@ -27,6 +27,7 @@ GitHub Actions
 - 磁盘: 至少 10GB
 - 开放端口: 80, 443, 7000, 7200
 - 需要 root 权限
+- 自动安装: Nginx, Python 3.11+, uv, SQLite
 
 ## 首次部署步骤
 
@@ -135,7 +136,7 @@ git push origin main
    - 停止现有服务
    - 部署新版本
    - 安装后端依赖
-   - 配置 Nginx
+   - 自动安装和配置 Nginx
    - 配置 systemd 服务
    - 启动服务
 
@@ -225,6 +226,8 @@ sudo tail -f /opt/frps-panel/backend/logs/app.log
 
 配置文件位置: `/etc/nginx/sites-available/frps-panel`
 
+部署脚本会自动安装和配置 Nginx。配置内容：
+
 ```nginx
 server {
     listen 80;
@@ -248,6 +251,24 @@ server {
         proxy_pass http://127.0.0.1:8000;
     }
 }
+```
+
+### 手动配置 Nginx（如果需要）
+
+如果自动配置失败，可以手动配置：
+
+```bash
+# 创建配置文件
+sudo nano /etc/nginx/sites-available/frps-panel
+
+# 启用站点
+sudo ln -s /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/
+
+# 测试配置
+sudo nginx -t
+
+# 重启 Nginx
+sudo systemctl restart nginx
 ```
 
 ## 回滚部署
@@ -304,6 +325,9 @@ sudo netstat -tlnp | grep 8000
 ### 前端无法访问
 
 ```bash
+# 检查 Nginx 状态
+sudo systemctl status nginx
+
 # 检查 Nginx 配置
 sudo nginx -t
 
@@ -312,6 +336,9 @@ sudo systemctl restart nginx
 
 # 检查文件权限
 ls -la /opt/frps-panel/frontend/
+
+# 查看 Nginx 日志
+sudo tail -f /var/log/nginx/frps-panel-error.log
 ```
 
 ## 安全建议

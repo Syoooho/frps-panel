@@ -100,14 +100,10 @@ jobs:
           systemctl stop frps || true
           systemctl stop frps-panel-backend || true
           systemctl stop frps-panel-plugin || true
-          # Nginx 不需要停止，稍后会平滑重载
+          systemctl stop nginx || true
           
           # 部署前端
           echo "📱 部署前端..."
-          # 处理宝塔面板的 .user.ini 保护
-          if [ -f "$APP_DIR/frontend/.user.ini" ]; then
-            chattr -i $APP_DIR/frontend/.user.ini 2>/dev/null || true
-          fi
           rm -rf $APP_DIR/frontend
           cp -r frontend $APP_DIR/
           
@@ -233,10 +229,97 @@ jobs:
           systemctl status frps-panel-backend --no-pager || true
           systemctl status frps-panel-plugin --no-pager || true
           
+          # 配置 Nginx
+          echo "🌐 配置 Nginx..."
+          
+          # 检查 Nginx 是否已安装
+          if ! command -v nginx &> /dev/null; then
+            echo "📦 安装 Nginx..."
+            apt-get update
+            apt-get install -y nginx
+          else
+            echo "✅ Nginx 已安装"
+          fi
+          
+          # 创建 Nginx 配置
+          tee /etc/nginx/sites-available/frps-panel > /dev/null << 'NGINX_EOF'
+          server {
+              listen 80;
+              server_name _;
+              
+              # 前端静态文件
+              location / {
+                  root /opt/frps-panel/frontend;
+                  try_files $uri $uri/ /index.html;
+                  
+                  # 缓存静态资源
+                  location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                      expires 1y;
+                      add_header Cache-Control "public, immutable";
+                  }
+              }
+              
+              # 后端 API
+              location /api/ {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  
+                  # WebSocket 支持（为将来功能预留）
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+              }
+              
+              # API 文档
+              location /docs {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+              
+              location /openapi.json {
+                  proxy_pass http://127.0.0.1:8000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+              
+              # 安全头
+              add_header X-Frame-Options "SAMEORIGIN" always;
+              add_header X-Content-Type-Options "nosniff" always;
+              add_header X-XSS-Protection "1; mode=block" always;
+              
+              # 日志
+              access_log /var/log/nginx/frps-panel-access.log;
+              error_log /var/log/nginx/frps-panel-error.log;
+          }
+          NGINX_EOF
+          
+          # 启用站点配置
+          ln -sf /etc/nginx/sites-available/frps-panel /etc/nginx/sites-enabled/frps-panel
+          
+          # 删除默认站点配置（如果存在）
+          rm -f /etc/nginx/sites-enabled/default
+          
+          # 测试 Nginx 配置
+          echo "🔍 测试 Nginx 配置..."
+          nginx -t
+          
+          # 启动 Nginx
+          echo "🚀 启动 Nginx..."
+          systemctl enable nginx
+          systemctl restart nginx
+          
+          # 检查 Nginx 状态
+          systemctl status nginx --no-pager || true
+          
           echo ""
-          echo "📝 注意：Nginx 配置需要在宝塔面板中手动管理"
+          echo "📝 部署信息："
           echo "   前端目录: /opt/frps-panel/frontend"
-          echo "   后端代理: http://127.0.0.1:8000"
+          echo "   后端 API: http://127.0.0.1:8000"
+          echo "   Nginx 配置: /etc/nginx/sites-available/frps-panel"
           
           echo "🎉 部署完成！"
           echo "前端访问: http://$(curl -s ifconfig.me)"

@@ -4,11 +4,14 @@
 
 - ✅ 一台 Linux 服务器（Ubuntu 20.04+ / Debian 11+）
 - ✅ 服务器 root 访问权限
+- ✅ 开放端口：80, 443, 7000, 7200
 - ✅ GitHub 仓库已配置以下 Secrets：
   - `SERVER_IP`: 服务器 IP 地址
   - `SSH_KEY`: SSH 私钥
   - `SECRET_KEY`: JWT 密钥（随机字符串，至少 32 位）
   - `FRP_SERVER_ADDR`: FRP 服务器地址（通常是服务器 IP）
+
+部署脚本会自动安装：Nginx, Python 3.11+, uv, SQLite
 
 ## 三步完成部署
 
@@ -138,11 +141,19 @@ sudo journalctl -u frps-panel-plugin -n 50
 
 ### Q: 如何配置 HTTPS？
 
-A: 使用 Let's Encrypt：
+A: 部署完成后使用 Let's Encrypt：
+
 ```bash
 sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d your-domain.com
 ```
+
+### Q: Nginx 配置在哪里？
+
+A: 配置文件位置：
+- 站点配置: `/etc/nginx/sites-available/frps-panel`
+- 访问日志: `/var/log/nginx/frps-panel-access.log`
+- 错误日志: `/var/log/nginx/frps-panel-error.log`
 
 ### Q: 如何备份数据？
 
