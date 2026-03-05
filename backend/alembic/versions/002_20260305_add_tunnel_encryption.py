@@ -1,7 +1,7 @@
 """add tunnel encryption options
 
-Revision ID: add_tunnel_encryption
-Revises: add_security_tables
+Revision ID: 002_add_tunnel_encryption
+Revises: 001_add_security_tables
 Create Date: 2026-03-05
 
 """
@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'add_tunnel_encryption'
-down_revision = 'add_security_tables'
+revision = '002_add_tunnel_encryption'
+down_revision = '001_add_security_tables'
 branch_labels = None
 depends_on = None
 

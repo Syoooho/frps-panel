@@ -1,16 +1,15 @@
 """add security tables
 
-Revision ID: add_security_tables
+Revision ID: 001_add_security_tables
 Revises: 
 Create Date: 2026-03-05
 
 """
 from alembic import op
 import sqlalchemy as sa
-from datetime import datetime
 
 # revision identifiers, used by Alembic.
-revision = 'add_security_tables'
+revision = '001_add_security_tables'
 down_revision = None
 branch_labels = None
 depends_on = None
