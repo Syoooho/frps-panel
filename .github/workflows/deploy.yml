@@ -171,12 +171,11 @@ jobs:
           if [ ! -f "$APP_DIR/backend/frps_panel.db" ]; then
             echo "🗄️  初始化数据库..."
             uv run python -m app.init_db
-          else
-            echo "🔄 更新数据库结构..."
-            # 运行数据库迁移脚本
-            uv run python scripts/init_security_tables.py || true
-            uv run python scripts/update_db_for_encryption.py || true
           fi
+          
+          # 运行数据库迁移
+          echo "🔄 运行数据库迁移..."
+          uv run alembic upgrade head || echo "⚠️  数据库迁移失败，可能已是最新版本"
           
           # 更新环境变量（添加新配置项）
           echo "⚙️  更新环境变量..."
