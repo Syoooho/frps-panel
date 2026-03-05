@@ -93,6 +93,8 @@ class TunnelService:
             remote_port=remote_port,
             custom_domain=tunnel_data.custom_domain,
             subdomain=tunnel_data.subdomain,
+            use_encryption=tunnel_data.use_encryption,
+            use_compression=tunnel_data.use_compression,
             status="inactive"
         )
         db.add(tunnel)
@@ -129,3 +131,73 @@ class TunnelService:
         db.delete(tunnel)
         db.commit()
         return {"message": "隧道已删除"}
+
+    
+    @staticmethod
+    def generate_frpc_config(db: Session, tunnel_id: int, user):
+        """生成 frpc 配置文件内容"""
+        tunnel = TunnelService.get_tunnel(db, tunnel_id, user.id)
+        
+        # 从环境变量获取服务器配置
+        import os
+        server_addr = os.getenv("FRP_SERVER_ADDR", "127.0.0.1")
+        server_port = os.getenv("FRP_SERVER_PORT", "7000")
+        
+        # 基础配置
+        config = f"""# FRP 客户端配置 - {tunnel.name}
+# 生成时间: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}
+
+[common]
+server_addr = {server_addr}
+server_port = {server_port}
+"""
+        
+        # 如果启用加密，添加 TLS 配置
+        if tunnel.use_encryption:
+            config += """# TLS 加密传输
+tls_enable = true
+"""
+        
+        # 用户认证
+        config += f"""
+# 用户认证
+user = {user.email}
+meta_token = {user.frp_token}
+
+"""
+        
+        # 隧道配置
+        config += f"""[{tunnel.name}]
+type = {tunnel.type}
+local_ip = {tunnel.local_ip}
+local_port = {tunnel.local_port}
+"""
+        
+        # 根据隧道类型添加特定配置
+        if tunnel.type in ['tcp', 'udp']:
+            config += f"remote_port = {tunnel.remote_port}\n"
+        elif tunnel.type == 'http':
+            if tunnel.custom_domain:
+                config += f"custom_domains = {tunnel.custom_domain}\n"
+            elif tunnel.subdomain:
+                config += f"subdomain = {tunnel.subdomain}\n"
+        elif tunnel.type == 'https':
+            if tunnel.custom_domain:
+                config += f"custom_domains = {tunnel.custom_domain}\n"
+            elif tunnel.subdomain:
+                config += f"subdomain = {tunnel.subdomain}\n"
+        
+        # 如果启用压缩
+        if tunnel.use_compression:
+            config += "use_compression = true\n"
+        
+        # 如果启用加密
+        if tunnel.use_encryption:
+            config += "use_encryption = true\n"
+        
+        return {
+            "config": config,
+            "tunnel_name": tunnel.name,
+            "encryption_enabled": tunnel.use_encryption,
+            "compression_enabled": tunnel.use_compression
+        }

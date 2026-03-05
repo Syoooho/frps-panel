@@ -17,6 +17,8 @@ export const TunnelForm = ({ onSubmit, onCancel, initialData }: TunnelFormProps)
     remote_port: initialData?.remote_port || '',
     custom_domain: initialData?.custom_domain || '',
     subdomain: initialData?.subdomain || '',
+    use_encryption: initialData?.use_encryption || false,
+    use_compression: initialData?.use_compression || false,
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -115,6 +117,34 @@ export const TunnelForm = ({ onSubmit, onCancel, initialData }: TunnelFormProps)
           />
         </div>
       )}
+
+      <div className="border-t pt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="block text-sm font-medium">启用加密传输</label>
+            <p className="text-xs text-gray-500 mt-1">使用 TLS 加密隧道数据传输</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={formData.use_encryption}
+            onChange={(e) => setFormData({ ...formData, use_encryption: e.target.checked })}
+            className="w-5 h-5 text-blue-600 rounded"
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="block text-sm font-medium">启用压缩</label>
+            <p className="text-xs text-gray-500 mt-1">压缩传输数据，节省带宽</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={formData.use_compression}
+            onChange={(e) => setFormData({ ...formData, use_compression: e.target.checked })}
+            className="w-5 h-5 text-blue-600 rounded"
+          />
+        </div>
+      </div>
 
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="secondary" onClick={onCancel}>

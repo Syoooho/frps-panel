@@ -48,3 +48,13 @@ async def delete_tunnel(
     current_user: User = Depends(get_current_user)
 ):
     return TunnelService.delete_tunnel(db, tunnel_id, current_user.id)
+
+
+@router.get("/{tunnel_id}/config")
+async def get_tunnel_config(
+    tunnel_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """生成隧道的 frpc 配置"""
+    return TunnelService.generate_frpc_config(db, tunnel_id, current_user)

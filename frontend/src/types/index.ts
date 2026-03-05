@@ -27,6 +27,8 @@ export interface Tunnel {
   remote_port?: number
   custom_domain?: string
   subdomain?: string
+  use_encryption?: boolean
+  use_compression?: boolean
   status: 'active' | 'inactive'
   created_at: string
 }
