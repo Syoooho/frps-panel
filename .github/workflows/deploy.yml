@@ -139,6 +139,12 @@ jobs:
           chmod +x $APP_DIR/frp/frps
           chmod +x $APP_DIR/frp/frpc
           
+          # 部署脚本文件
+          echo "📜 部署脚本文件..."
+          rm -rf $APP_DIR/scripts
+          cp -r scripts $APP_DIR/
+          chmod +x $APP_DIR/scripts/*.sh
+          
           # 安装后端依赖
           echo "📦 安装后端依赖..."
           cd $APP_DIR/backend
