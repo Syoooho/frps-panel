@@ -1,11 +1,42 @@
-# FRP 服务端配置示例
-# 配合 frps-panel 插件使用
+# FRP 服务器配置文件示例
+# 将此文件复制到 /opt/frp/frps.toml
 
+# 服务器绑定地址和端口
+bindAddr = "0.0.0.0"
 bindPort = 7000
 
-# 注册 frps-panel 插件
-[[httpPlugins]]
-name = "frps-panel"
-addr = "127.0.0.1:7200"
-path = "/handler"
-ops = ["Login", "NewProxy", "CloseProxy", "Ping"]
+# 日志配置
+log.to = "/var/log/frp/frps-app.log"
+log.level = "info"
+log.maxDays = 7
+
+# Dashboard 配置
+webServer.addr = "0.0.0.0"
+webServer.port = 7200
+webServer.user = "admin"
+webServer.password = "admin"
+
+# 认证配置
+auth.method = "token"
+auth.token = "your_token_here"
+
+# 允许的端口范围
+allowPorts = [
+  { start = 7001, end = 8000 }
+]
+
+# 子域名配置(如果需要)
+# subDomainHost = "example.com"
+
+# 最大连接池大小
+maxPoolCount = 5
+
+# 心跳超时时间(秒)
+transport.heartbeatTimeout = 90
+
+# TCP 多路复用
+transport.tcpMux = true
+transport.tcpMuxKeepaliveInterval = 60
+
+# 详细日志(调试用)
+# log.level = "debug"
