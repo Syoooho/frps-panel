@@ -24,14 +24,10 @@ fi
 echo "创建证书目录..."
 mkdir -p "$CERT_DIR"
 
-# 生成私钥
-echo "生成私钥..."
-openssl genrsa -out "$CERT_DIR/server.key" 4096
-
-# 生成证书签名请求配置
-cat > "$CERT_DIR/cert.conf" <<EOF
+# 生成 OpenSSL 配置文件
+cat > "$CERT_DIR/openssl.cnf" <<EOF
 [req]
-default_bits = 4096
+default_bits = 2048
 prompt = no
 default_md = sha256
 distinguished_name = dn
@@ -46,7 +42,8 @@ OU = IT Department
 CN = $SERVER_IP
 
 [v3_req]
-keyUsage = keyEncipherment, dataEncipherment
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
@@ -54,12 +51,16 @@ subjectAltName = @alt_names
 IP.1 = $SERVER_IP
 EOF
 
+# 生成私钥
+echo "生成私钥..."
+openssl genrsa -out "$CERT_DIR/server.key" 2048
+
 # 生成证书
 echo "生成证书..."
 openssl req -new -x509 -key "$CERT_DIR/server.key" \
     -out "$CERT_DIR/server.crt" \
     -days $CERT_DAYS \
-    -config "$CERT_DIR/cert.conf" \
+    -config "$CERT_DIR/openssl.cnf" \
     -extensions v3_req
 
 # 设置权限
