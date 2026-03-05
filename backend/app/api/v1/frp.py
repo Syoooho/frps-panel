@@ -76,6 +76,8 @@ async def handle_new_proxy(body: dict, db: Session) -> dict:
     """处理新建代理请求"""
     req = FRPNewProxyRequest(content=body.get("content", {}))
     
+    logger.info(f"NewProxy 请求: user={req.user}, proxy_name={req.proxy_name}, content={body.get('content', {})}")
+    
     # 获取用户
     user = FRPService.get_user_by_email(db, req.user)
     if not user:

@@ -35,14 +35,28 @@ class FRPNewProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        return str(self.content.get("user", ""))
+        user = str(self.content.get("user", ""))
+        # FRP 0.67.0 可能在 proxy_name 中包含用户前缀，格式为 user.proxy_name
+        # 如果 user 为空，尝试从 proxy_name 中提取
+        if not user:
+            proxy_info = self.content.get("proxy_info", {})
+            if isinstance(proxy_info, dict):
+                proxy_name = str(proxy_info.get("proxy_name", ""))
+                # 如果包含 '.'，则前面部分是用户名
+                if '.' in proxy_name:
+                    user = proxy_name.rsplit('.', 1)[0]
+        return user
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
-            return str(proxy_info.get("proxy_name", ""))
+            proxy_name = str(proxy_info.get("proxy_name", ""))
+            # FRP 0.67.0 的代理名格式为 user.proxy_name，需要去掉用户前缀
+            if '.' in proxy_name:
+                return proxy_name.rsplit('.', 1)[1]
+            return proxy_name
         return ""
     
     @property
@@ -94,14 +108,28 @@ class FRPCloseProxyRequest(BaseModel):
     @property
     def user(self) -> str:
         """获取用户名"""
-        return str(self.content.get("user", ""))
+        user = str(self.content.get("user", ""))
+        # FRP 0.67.0 可能在 proxy_name 中包含用户前缀，格式为 user.proxy_name
+        # 如果 user 为空，尝试从 proxy_name 中提取
+        if not user:
+            proxy_info = self.content.get("proxy_info", {})
+            if isinstance(proxy_info, dict):
+                proxy_name = str(proxy_info.get("proxy_name", ""))
+                # 如果包含 '.'，则前面部分是用户名
+                if '.' in proxy_name:
+                    user = proxy_name.rsplit('.', 1)[0]
+        return user
     
     @property
     def proxy_name(self) -> str:
         """获取代理名称"""
         proxy_info = self.content.get("proxy_info", {})
         if isinstance(proxy_info, dict):
-            return str(proxy_info.get("proxy_name", ""))
+            proxy_name = str(proxy_info.get("proxy_name", ""))
+            # FRP 0.67.0 的代理名格式为 user.proxy_name，需要去掉用户前缀
+            if '.' in proxy_name:
+                return proxy_name.rsplit('.', 1)[1]
+            return proxy_name
         return ""
 
 
