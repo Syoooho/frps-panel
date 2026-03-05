@@ -8,7 +8,7 @@ from sqlalchemy import text
 from app.core.database import engine
 
 def update_database():
-    """添加加密相关字段到隧道表"""
+    """添加加密和自定义端口相关字段到隧道表"""
     print("开始更新数据库...")
     
     with engine.connect() as conn:
@@ -33,6 +33,24 @@ def update_database():
             print("✅ use_compression 字段已添加")
         else:
             print("⏭️  use_compression 字段已存在")
+        
+        # 添加 custom_http_port 字段
+        if 'custom_http_port' not in columns:
+            print("添加 custom_http_port 字段...")
+            conn.execute(text("ALTER TABLE tunnels ADD COLUMN custom_http_port INTEGER"))
+            conn.commit()
+            print("✅ custom_http_port 字段已添加")
+        else:
+            print("⏭️  custom_http_port 字段已存在")
+        
+        # 添加 custom_https_port 字段
+        if 'custom_https_port' not in columns:
+            print("添加 custom_https_port 字段...")
+            conn.execute(text("ALTER TABLE tunnels ADD COLUMN custom_https_port INTEGER"))
+            conn.commit()
+            print("✅ custom_https_port 字段已添加")
+        else:
+            print("⏭️  custom_https_port 字段已存在")
     
     print("\n数据库更新完成！")
 

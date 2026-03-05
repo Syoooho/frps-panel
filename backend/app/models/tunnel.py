@@ -14,6 +14,8 @@ class Tunnel(Base):
     remote_port = Column(Integer, nullable=True, index=True)
     custom_domain = Column(String(255), nullable=True, index=True)
     subdomain = Column(String(100), nullable=True)
+    custom_http_port = Column(Integer, nullable=True)
+    custom_https_port = Column(Integer, nullable=True)
     use_encryption = Column(Boolean, default=False)
     use_compression = Column(Boolean, default=False)
     status = Column(String(20), default="inactive", index=True)

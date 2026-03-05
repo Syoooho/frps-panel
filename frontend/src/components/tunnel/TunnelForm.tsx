@@ -17,6 +17,8 @@ export const TunnelForm = ({ onSubmit, onCancel, initialData }: TunnelFormProps)
     remote_port: initialData?.remote_port || '',
     custom_domain: initialData?.custom_domain || '',
     subdomain: initialData?.subdomain || '',
+    custom_http_port: initialData?.custom_http_port || '',
+    custom_https_port: initialData?.custom_https_port || '',
     use_encryption: initialData?.use_encryption || false,
     use_compression: initialData?.use_compression || false,
   })
@@ -93,29 +95,55 @@ export const TunnelForm = ({ onSubmit, onCancel, initialData }: TunnelFormProps)
       )}
 
       {formData.type === 'http' && (
-        <div>
-          <label className="block text-sm font-medium mb-1">子域名</label>
-          <input
-            type="text"
-            value={formData.subdomain}
-            onChange={(e) => setFormData({ ...formData, subdomain: e.target.value })}
-            className="w-full px-3 py-2 border rounded-lg"
-            placeholder="myapp"
-          />
-        </div>
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">子域名</label>
+            <input
+              type="text"
+              value={formData.subdomain}
+              onChange={(e) => setFormData({ ...formData, subdomain: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="myapp"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">自定义端口（可选）</label>
+            <input
+              type="number"
+              value={formData.custom_http_port}
+              onChange={(e) => setFormData({ ...formData, custom_http_port: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="8080（默认）"
+            />
+            <p className="text-xs text-gray-500 mt-1">留空使用默认端口 8080</p>
+          </div>
+        </>
       )}
 
       {formData.type === 'https' && (
-        <div>
-          <label className="block text-sm font-medium mb-1">自定义域名</label>
-          <input
-            type="text"
-            value={formData.custom_domain}
-            onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
-            className="w-full px-3 py-2 border rounded-lg"
-            placeholder="example.com"
-          />
-        </div>
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">自定义域名</label>
+            <input
+              type="text"
+              value={formData.custom_domain}
+              onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">自定义端口（可选）</label>
+            <input
+              type="number"
+              value={formData.custom_https_port}
+              onChange={(e) => setFormData({ ...formData, custom_https_port: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="8443（默认）"
+            />
+            <p className="text-xs text-gray-500 mt-1">留空使用默认端口 8443</p>
+          </div>
+        </>
       )}
 
       <div className="border-t pt-4 space-y-3">

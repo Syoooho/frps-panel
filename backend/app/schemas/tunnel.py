@@ -10,6 +10,8 @@ class TunnelBase(BaseModel):
     remote_port: Optional[int] = None
     custom_domain: Optional[str] = None
     subdomain: Optional[str] = None
+    custom_http_port: Optional[int] = None
+    custom_https_port: Optional[int] = None
     use_encryption: Optional[bool] = False
     use_compression: Optional[bool] = False
 
@@ -23,6 +25,8 @@ class TunnelUpdate(BaseModel):
     remote_port: Optional[int] = None
     custom_domain: Optional[str] = None
     subdomain: Optional[str] = None
+    custom_http_port: Optional[int] = None
+    custom_https_port: Optional[int] = None
     use_encryption: Optional[bool] = None
     use_compression: Optional[bool] = None
 

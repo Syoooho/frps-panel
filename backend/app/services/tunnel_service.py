@@ -93,6 +93,8 @@ class TunnelService:
             remote_port=remote_port,
             custom_domain=tunnel_data.custom_domain,
             subdomain=tunnel_data.subdomain,
+            custom_http_port=tunnel_data.custom_http_port,
+            custom_https_port=tunnel_data.custom_https_port,
             use_encryption=tunnel_data.use_encryption,
             use_compression=tunnel_data.use_compression,
             status="inactive"
@@ -142,6 +144,8 @@ class TunnelService:
         import os
         server_addr = os.getenv("FRP_SERVER_ADDR", "127.0.0.1")
         server_port = os.getenv("FRP_SERVER_PORT", "7000")
+        default_http_port = os.getenv("FRP_HTTP_PORT", "8080")
+        default_https_port = os.getenv("FRP_HTTPS_PORT", "8443")
         
         # 基础配置
         config = f"""# FRP 客户端配置 - {tunnel.name}
@@ -177,15 +181,27 @@ local_port = {tunnel.local_port}
         if tunnel.type in ['tcp', 'udp']:
             config += f"remote_port = {tunnel.remote_port}\n"
         elif tunnel.type == 'http':
+            # 使用自定义端口或默认端口
+            http_port = tunnel.custom_http_port or default_http_port
             if tunnel.custom_domain:
                 config += f"custom_domains = {tunnel.custom_domain}\n"
+                if http_port != "80":
+                    config += f"# 访问地址: http://{tunnel.custom_domain}:{http_port}\n"
             elif tunnel.subdomain:
                 config += f"subdomain = {tunnel.subdomain}\n"
+                if http_port != "80":
+                    config += f"# 访问地址: http://{tunnel.subdomain}.yourdomain.com:{http_port}\n"
         elif tunnel.type == 'https':
+            # 使用自定义端口或默认端口
+            https_port = tunnel.custom_https_port or default_https_port
             if tunnel.custom_domain:
                 config += f"custom_domains = {tunnel.custom_domain}\n"
+                if https_port != "443":
+                    config += f"# 访问地址: https://{tunnel.custom_domain}:{https_port}\n"
             elif tunnel.subdomain:
                 config += f"subdomain = {tunnel.subdomain}\n"
+                if https_port != "443":
+                    config += f"# 访问地址: https://{tunnel.subdomain}.yourdomain.com:{https_port}\n"
         
         # 如果启用压缩
         if tunnel.use_compression:
@@ -199,5 +215,7 @@ local_port = {tunnel.local_port}
             "config": config,
             "tunnel_name": tunnel.name,
             "encryption_enabled": tunnel.use_encryption,
-            "compression_enabled": tunnel.use_compression
+            "compression_enabled": tunnel.use_compression,
+            "http_port": tunnel.custom_http_port or default_http_port if tunnel.type == 'http' else None,
+            "https_port": tunnel.custom_https_port or default_https_port if tunnel.type == 'https' else None
         }
