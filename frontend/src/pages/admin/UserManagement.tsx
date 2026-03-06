@@ -4,21 +4,43 @@ import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Toast from '../../components/ui/Toast'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
-import { useToast } from '../../hooks/useToast'
-import { useConfirm } from '../../hooks/useConfirm'
 import { adminService } from '../../services/admin'
 import type { User } from '../../types'
+
+interface ToastState {
+  isVisible: boolean
+  message: string
+  type: 'success' | 'error' | 'info' | 'warning'
+}
 
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
-  const { toasts, showToast, removeToast } = useToast()
-  const { isOpen, options, confirm, handleConfirm, handleCancel } = useConfirm()
+  const [toast, setToast] = useState<ToastState>({ isVisible: false, message: '', type: 'info' })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  })
 
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  const showToast = (message: string, type: ToastState['type'] = 'info') => {
+    setToast({ isVisible: true, message, type })
+  }
+
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }))
+  }
 
   const fetchUsers = async () => {
     try {
@@ -33,11 +55,10 @@ export default function UserManagement() {
   }
 
   const handleDeleteUser = (user: User) => {
-    confirm({
+    setConfirmDialog({
+      isOpen: true,
       title: '删除用户',
       message: `确定要删除用户 ${user.email} 吗？此操作将同时删除该用户的所有隧道和订阅信息。`,
-      confirmText: '删除',
-      cancelText: '取消',
       onConfirm: async () => {
         try {
           await adminService.deleteUser(user.id)
@@ -46,6 +67,7 @@ export default function UserManagement() {
         } catch (error: any) {
           showToast(error.response?.data?.detail || '删除用户失败', 'error')
         }
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }))
       }
     })
   }
@@ -70,15 +92,20 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <Toast toasts={toasts} onClose={removeToast} />
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={closeToast}
+      />
       <ConfirmDialog
-        isOpen={isOpen}
-        title={options?.title || ''}
-        message={options?.message || ''}
-        confirmText={options?.confirmText}
-        cancelText={options?.cancelText}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDialog.onConfirm}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
       />
       <div className="flex items-center justify-between">
         <div>

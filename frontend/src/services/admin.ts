@@ -1,5 +1,5 @@
 import api from './api'
-import type { User, RedeemCode, PaginatedResponse } from '../types'
+import type { User, RedeemCode } from '../types'
 
 export const adminService = {
   // 用户管理
