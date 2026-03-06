@@ -45,11 +45,11 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await adminService.getUsers(0, 100)
-      setUsers(response.data || [])
+      const data = await adminService.getUsers(0, 100)
+      setUsers(data || [])
     } catch (error: any) {
       setUsers([])
-      showToast(error.response?.data?.detail || '获取用户列表失败', 'error')
+      showToast(error.message || '获取用户列表失败', 'error')
     } finally {
       setLoading(false)
     }
@@ -66,7 +66,7 @@ export default function UserManagement() {
           showToast('用户删除成功', 'success')
           fetchUsers()
         } catch (error: any) {
-          showToast(error.response?.data?.detail || '删除用户失败', 'error')
+          showToast(error.message || '删除用户失败', 'error')
         }
         setConfirmDialog(prev => ({ ...prev, isOpen: false }))
       }

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
 
@@ -13,3 +14,5 @@ class Subscription(Base):
     end_date = Column(DateTime, nullable=False, index=True)
     is_active = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="subscription")

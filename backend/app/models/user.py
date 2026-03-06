@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
 import secrets
@@ -14,6 +15,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
+    
+    subscription = relationship("Subscription", back_populates="user", uselist=False)
     
     def generate_frp_token(self):
         """生成 FRP Token"""

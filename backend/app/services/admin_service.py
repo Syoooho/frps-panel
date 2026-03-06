@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.user import User
 from app.models.tunnel import Tunnel
 from app.models.activation_code import ActivationCode
@@ -8,7 +8,7 @@ from fastapi import HTTPException, status
 class AdminService:
     @staticmethod
     def get_all_users(db: Session, skip: int = 0, limit: int = 100):
-        return db.query(User).offset(skip).limit(limit).all()
+        return db.query(User).options(joinedload(User.subscription)).offset(skip).limit(limit).all()
     
     @staticmethod
     def delete_user(db: Session, user_id: int):

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
-from app.models import user, tunnel, subscription, activation_code, system_config
+from app.models import user, tunnel, subscription, activation_code, system_config, login_log
 from app.core.security import get_password_hash
 from datetime import datetime, timedelta, timezone
 
@@ -10,6 +10,7 @@ def init_db():
     subscription.Base.metadata.create_all(bind=engine)
     activation_code.Base.metadata.create_all(bind=engine)
     system_config.Base.metadata.create_all(bind=engine)
+    login_log.Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
     
