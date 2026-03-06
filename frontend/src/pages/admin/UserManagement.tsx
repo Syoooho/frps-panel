@@ -46,8 +46,9 @@ export default function UserManagement() {
     try {
       setLoading(true)
       const response = await adminService.getUsers(0, 100)
-      setUsers(response.data)
+      setUsers(response.data || [])
     } catch (error: any) {
+      setUsers([])
       showToast(error.response?.data?.detail || '获取用户列表失败', 'error')
     } finally {
       setLoading(false)
