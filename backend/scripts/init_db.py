@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append('backend')
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.database import engine, Base
 from app.models.user import User

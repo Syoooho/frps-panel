@@ -26,6 +26,7 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 | `alembic/` | 数据库迁移脚本 (详见 `alembic/AGENTS.md`) |
 | `tests/` | 测试脚本和测试文档 |
 | `logs/` | 日志文件目录 |
+| `scripts/` | 数据库相关工具脚本 |
 | `.venv/` | Python 虚拟环境（不提交到 Git） |
 
 ## AI Agent 工作指南
@@ -130,13 +131,19 @@ FastAPI 后端服务，提供 RESTful API 接口，处理用户认证、订阅�
 - Logging - 日志系统
 
 ### 工具脚本 ✅
-- init_db.py - 数据库初始化脚本
+- scripts/init_db.py - 数据库初始化脚本
+- scripts/create_admin.py - 创建管理员账户脚本
+- scripts/update_db_for_encryption.py - 数据库加密更新脚本
+- scripts/update_existing_tunnels.py - 更新现有隧道脚本
+- scripts/check_tunnel_fields.py - 检查隧道字段脚本
+- scripts/init_security_tables.py - 初始化安全表脚本
+- scripts/init_db.sh - Shell 初始化脚本
+- scripts/start.sh - 启动脚本
 - tests/test_api.py - API 测试脚本
 - tests/test_frp_api.py - FRP API 测试脚本
 - tests/test_monitor_api.py - 监控 API 测试脚本
+- tests/test_security.py - 安全功能测试脚本
 - tests/test_integration.md - 集成测试文档
-- scripts/init_db.sh - Shell 初始化脚本
-- scripts/start.sh - 启动脚本
 
 ### 测试数据 ✅
 - 管理员账户：admin@example.com / admin123
