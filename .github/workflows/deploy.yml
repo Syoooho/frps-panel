@@ -61,9 +61,6 @@ jobs:
           cp -r scripts deploy/
           cp frp-plugin/frps-panel-linux-amd64 deploy/
           cp frp-plugin/config/*.toml deploy/
-          cp -r frp_0.67.0_linux_amd64 deploy/
-          cp frp-plugin/frps-panel-linux-amd64 deploy/
-          cp frp-plugin/config/*.toml deploy/
           
       - name: Create backend .env file
         run: |
@@ -133,11 +130,18 @@ jobs:
           cp *.toml $APP_DIR/ || true
           
           # 部署 FRP 二进制文件
-          echo "📦 部署 FRP 二进制文件..."
-          rm -rf $APP_DIR/frp
-          cp -r frp_0.67.0_linux_amd64 $APP_DIR/frp
-          chmod +x $APP_DIR/frp/frps
-          chmod +x $APP_DIR/frp/frpc
+          echo "🔍 检查 FRP 二进制文件..."
+          if [ ! -d "$APP_DIR/frp" ]; then
+            echo "⚠️  FRP 二进制文件不存在，请手动上传！"
+            echo "📦 请将 frp_0.67.0_linux_amd64 目录上传到: $APP_DIR/frp"
+            echo "   上传命令示例："
+            echo "   scp -r frp_0.67.0_linux_amd64 root@your-server-ip:/opt/frps-panel/frp"
+            mkdir -p $APP_DIR/frp
+          else
+            echo "✅ FRP 二进制文件已存在"
+            chmod +x $APP_DIR/frp/frps || true
+            chmod +x $APP_DIR/frp/frpc || true
+          fi
           
           # 部署脚本文件
           echo "📜 部署脚本文件..."
