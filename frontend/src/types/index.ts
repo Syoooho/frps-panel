@@ -3,6 +3,7 @@ export interface User {
   email: string
   frp_token?: string
   is_admin: boolean
+  is_active: boolean
   created_at: string
   subscription?: Subscription
 }

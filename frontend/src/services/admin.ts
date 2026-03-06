@@ -3,8 +3,8 @@ import type { User, RedeemCode, PaginatedResponse } from '../types'
 
 export const adminService = {
   // 用户管理
-  getUsers: (page = 1, pageSize = 20) => 
-    api.get<PaginatedResponse<User>>('/admin/users', { params: { page, page_size: pageSize } }),
+  getUsers: (skip = 0, limit = 100) => 
+    api.get<User[]>('/admin/users', { params: { skip, limit } }),
   
   deleteUser: (userId: number) => 
     api.delete(`/admin/users/${userId}`),
