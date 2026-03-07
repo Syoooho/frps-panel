@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../store/authStore'
 
 const axiosInstance = axios.create({
