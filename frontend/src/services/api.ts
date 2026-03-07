@@ -1,12 +1,12 @@
-import axios from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../store/authStore'
 
-const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   timeout: 10000,
 })
 
-api.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token
     if (token) {
@@ -19,7 +19,7 @@ api.interceptors.request.use(
   }
 )
 
-api.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
@@ -32,5 +32,24 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message))
   }
 )
+
+// 创建类型安全的 API 实例
+const api = {
+  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+    return axiosInstance.get(url, config)
+  },
+  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    return axiosInstance.post(url, data, config)
+  },
+  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    return axiosInstance.put(url, data, config)
+  },
+  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+    return axiosInstance.delete(url, config)
+  },
+  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+    return axiosInstance.patch(url, data, config)
+  },
+}
 
 export default api
