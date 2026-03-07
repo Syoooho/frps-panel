@@ -281,7 +281,7 @@ jobs:
           # 创建 Nginx 配置
           tee /etc/nginx/sites-available/frps-panel > /dev/null << 'NGINX_EOF'
           server {
-              listen 80;
+              listen 8080;
               server_name _;
               
               # 前端静态文件
